@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Kasir Cucian - Laundry Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; color: #1a2a3a; }
+        .header-fixed { position: fixed; top: 0; left: 0; right: 0; background: #1e2a3a; z-index: 100; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .menu-icon { font-size: 28px; cursor: pointer; background: none; color: white; width: 40px; border: none; }
+        .judul-halaman { color: white; font-size: 18px; font-weight: 600; text-align: center; flex: 1; }
+        .tanggal-container { background: #2c3e44; padding: 6px 12px; border-radius: 40px; display: flex; align-items: center; gap: 8px; }
+        .tanggal-container label { color: white; font-size: 12px; }
+        .tanggal-container input { width: 120px; padding: 6px 8px; border-radius: 30px; border: none; font-size: 12px; text-align: center; }
+        .side-menu { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #1e2a3a; transition: 0.3s; z-index: 1000; padding-top: 70px; }
+        .side-menu a { display: block; padding: 14px 24px; color: #ecf0f1; text-decoration: none; font-weight: 600; border-bottom: 1px solid #2c3e44; }
+        .close-menu { position: absolute; top: 12px; right: 20px; font-size: 32px; cursor: pointer; color: white; }
+        .print-settings { position: fixed; bottom: 20px; left: 20px; background: #1e2a3a; color: white; padding: 8px 14px; border-radius: 40px; font-size: 12px; z-index: 999; display: flex; gap: 12px; align-items: center; }
+        .print-settings select { width: 85px; padding: 5px; border-radius: 30px; }
+        @media print { .header-fixed, .side-menu, .menu-icon, .tanggal-container, .btn-add, .btn-report, .btn-warning, .btn-delete, .btn-edit, .btn-small, .btn-print, .print-settings, .save-status, .loader, .modal-nota, .modal-setting, .modal-edit, .btn-tab, .aksi-buttons { display: none !important; } body { padding: 0; margin: 0; } .card { box-shadow: none; border: 1px solid #ccc; } .laporan-area { background: white; color: black; } }
+        .container { max-width: 1280px; margin: 0 auto; padding: 20px; padding-top: 85px; }
+        .page { display: none; }
+        .active-page { display: block; }
+        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-bottom: 24px; }
+        h3 { border-left: 5px solid #3498db; padding-left: 14px; margin-bottom: 18px; color: #2c3e50; font-size: 18px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+        input, select, button { width: 100%; padding: 10px 12px; border: 1px solid #d0d7de; border-radius: 14px; font-size: 14px; }
+        button { cursor: pointer; font-weight: 700; background: #3498db; color: white; border: none; border-radius: 40px; transition: 0.2s; }
+        button:active { transform: scale(0.97); }
+        .btn-add { background: #2c3e50; }
+        .btn-report { background: #27ae60; }
+        .btn-warning { background: #e67e22; }
+        .btn-delete { background: #e74c3c; font-size: 12px; padding: 5px 12px; width: auto; display: inline-block; }
+        .btn-edit { background: #2980b9; font-size: 12px; padding: 5px 12px; width: auto; display: inline-block; }
+        .btn-small { background: #7f8c8d; font-size: 11px; padding: 4px 10px; width: auto; display: inline-block; }
+        .btn-print { background: #1abc9c; font-size: 12px; padding: 5px 12px; width: auto; display: inline-block; }
+        .btn-tab { background: #95a5a6; width: auto; padding: 8px 16px; margin-right: 8px; display: inline-block; }
+        .horizontal-group { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+        .horizontal-group label { display: flex; align-items: center; gap: 6px; font-weight: 500; margin: 0; }
+        .karyawan-list, .scrollable-select { max-height: 160px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 8px; background: #fefefe; }
+        .karyawan-list label, .scrollable-select label { display: flex; align-items: center; gap: 8px; padding: 8px; background: white; margin-bottom: 6px; border-radius: 14px; border: 1px solid #edf2f7; cursor: pointer; }
+        .karyawan-list input, .scrollable-select input { width: 18px; height: 18px; margin: 0; cursor: pointer; }
+        .keranjang-container { border: 1px solid #e2e8f0; border-radius: 20px; padding: 12px; margin-top: 16px; background: #fafcff; }
+        .keranjang-list { max-height: 130px; overflow-y: auto; margin-top: 8px; }
+        .keranjang-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; margin-bottom: 6px; border-radius: 16px; border: 1px solid #eef2f9; font-size: 12px; }
+        .tabel-wrapper { overflow-x: auto; border-radius: 20px; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px 8px; text-align: left; vertical-align: top; }
+        th { background: #2c3e50; color: white; font-weight: 600; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .row-qris { background: #d4f1f9; }
+        .row-lainnya { background: #ffe6e5; }
+        .laporan-area { background: #1e2a3a; color: #e2e8f0; padding: 18px; border-radius: 20px; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; max-height: 650px; overflow: auto; }
+        .modal-nota, .modal-setting, .modal-edit { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-nota-content { background: white; width: 90%; max-width: 380px; max-height: 85vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-setting-content, .modal-edit-content { background: white; width: 90%; max-width: 450px; max-height: 85vh; border-radius: 20px; overflow-y: auto; padding: 20px; }
+        .nota-header { background: #1e2a3a; color: white; padding: 14px; text-align: center; }
+        .nota-body { padding: 14px; overflow-y: auto; flex: 1; max-height: 55vh; }
+        .nota-footer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #eee; flex-wrap: wrap; justify-content: center; }
+        .nota-footer button { width: auto; padding: 8px 14px; font-size: 12px; }
+        .save-status { position: fixed; bottom: 20px; right: 20px; background: #27ae60; color: white; padding: 8px 18px; border-radius: 40px; font-size: 13px; z-index: 1100; opacity: 0; transition: 0.2s; }
+        .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .staf-badge { background: #27ae60; color: white; padding: 4px 10px; border-radius: 50px; font-size: 11px; display: inline-block; }
+        .training-badge { background: #f39c12; color: white; padding: 4px 10px; border-radius: 50px; font-size: 11px; display: inline-block; }
+        .total-pengeluaran { background: #e74c3c; color: white; padding: 12px; border-radius: 30px; text-align: center; margin-top: 12px; font-weight: bold; }
+        canvas { max-width: 100%; max-height: 260px; margin-bottom: 24px; }
+        .hidden { display: none; }
+        .aksi-buttons { display: flex; gap: 5px; flex-wrap: wrap; }
+        .close-modal { float: right; font-size: 24px; cursor: pointer; margin-top: -10px; margin-right: -10px; padding: 5px; }
+        #editFormContainer { max-height: 55vh; overflow-y: auto; padding-right: 5px; }
+        .detail-item { font-size: 10px; color: #2c3e50; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #ddd; }
+        .edit-item-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 5px; background: #f8f9fa; border-radius: 8px; flex-wrap: wrap; }
+        .edit-item-row input { width: 60px; margin: 0; }
+        .edit-item-row button { width: auto; padding: 4px 8px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="header-fixed">
+    <button class="menu-icon" id="menuIcon">☰</button>
+    <div class="judul-halaman" id="pageTitle">🧼 Kasir Cucian</div>
+    <div class="tanggal-container">
+        <label>📅</label>
+        <input type="date" id="tanggalGlobal">
+    </div>
+</div>
+
+<div class="side-menu" id="sideMenu">
+    <div class="close-menu" id="closeMenu">&times;</div>
+    <a href="#" data-page="page1" data-title="🧼 Kasir Cucian">🧼 Penjualan & Riwayat</a>
+    <a href="#" data-page="page2" data-title="📊 Laporan Keuangan">📊 Laporan & Grafik</a>
+    <a href="#" data-page="page3" data-title="👥 Gaji Karyawan">👥 Gaji & Karyawan</a>
+    <a href="#" data-page="page4" data-title="🗄️ Manajemen Stok">🗄️ Data Master</a>
+    <a href="#" data-page="page5" data-title="⚙️ Pengaturan" id="menuSetting">⚙️ Pengaturan Nota</a>
+</div>
+
+<div class="print-settings">
+    <label>📄 Lebar Kertas:</label>
+    <select id="paperWidth">
+        <option value="58">58 mm</option>
+        <option value="80" selected>80 mm</option>
+        <option value="100">100 mm</option>
+    </select>
+    <button id="applyPaperWidth" class="btn-small">Terapkan</button>
+</div>
+
+<div class="container">
+    <!-- Page 1: Kasir -->
+    <div id="page1" class="page active-page">
+        <div class="card">
+            <h3>🚗 Form Transaksi Cucian</h3>
+            <div class="form-group"><label>⏰ Jam</label><input type="text" id="jamTransaksi" placeholder="Kosongkan otomatis"></div>
+            <div class="form-group">
+                <label>🏍️ Jenis Kendaraan</label>
+                <div class="horizontal-group">
+                    <label><input type="radio" name="jenisKendaraan" value="Mobil" checked> Mobil</label>
+                    <label><input type="radio" name="jenisKendaraan" value="Motor"> Motor</label>
+                    <label><input type="radio" name="jenisKendaraan" value="Tidak Ada"> Tidak Ada</label>
+                </div>
+            </div>
+            <div class="form-group"><label>📝 Nama Kendaraan & Warna</label><input type="text" id="namaKendaraan" placeholder="Contoh: Avanza Hitam"></div>
+            <div class="form-group">
+                <label>💳 Metode Pembayaran</label>
+                <div class="horizontal-group">
+                    <label><input type="radio" name="metodeBayar" value="Cash" checked> Cash</label>
+                    <label><input type="radio" name="metodeBayar" value="Qris"> QRIS</label>
+                    <label><input type="radio" name="metodeBayar" value="Lainnya"> Lainnya</label>
+                </div>
+            </div>
+            <div class="form-group hidden" id="keteranganLainnyaGroup"><label>📝 Keterangan Lainnya</label><input type="text" id="keteranganLainnya" placeholder="Transfer BCA, OVO"></div>
+            <div class="form-group"><label>💰 Harga Jasa Cuci (Rp)</label><input type="number" id="hargaCuci" value="0"></div>
+            <div class="form-group"><label>👥 Karyawan yang Mengerjakan</label><div id="karyawanList" class="karyawan-list"></div></div>
+            <div class="keranjang-container"><label>✨ Parfum</label><div id="parfumList" class="scrollable-select"></div><div id="keranjangParfum" class="keranjang-list"></div></div>
+            <div class="keranjang-container"><label>🍬 Jajan</label><div id="jajanList" class="scrollable-select"></div><div id="keranjangJajan" class="keranjang-list"></div></div>
+            <button id="btnTambahTransaksi" style="background:#27ae60;">➕ Tambah Transaksi</button>
+        </div>
+        <div class="card"><h3>📋 Riwayat Penjualan Hari Ini</h3><div class="tabel-wrapper" id="tabelRiwayat"></div></div>
+    </div>
+
+    <!-- Page 2: Laporan -->
+    <div id="page2" class="page">
+        <div class="card">
+            <div class="tab-buttons">
+                <button id="btnTabHarian" class="btn-tab" style="background:#3498db;">📅 Laporan Harian</button>
+                <button id="btnTabBulanan" class="btn-tab">📆 Laporan Bulanan (Lainnya)</button>
+            </div>
+            <div id="laporanHarian">
+                <h3>💰 Form Pengeluaran</h3>
+                <div class="form-group"><input type="text" id="waktuPengeluaran" placeholder="Jam - kosongkan otomatis"></div>
+                <div class="form-group"><input type="text" id="ketPengeluaran" placeholder="Keterangan"></div>
+                <div class="form-group"><input type="number" id="jumlahPengeluaran" placeholder="Jumlah (Rp)"></div>
+                <button id="btnTambahPengeluaran" class="btn-warning">➕ Tambah Pengeluaran</button>
+                <div class="tabel-wrapper" style="margin-top:16px;"><div id="daftarPengeluaran"></div></div>
+                <div id="totalPengeluaranDisplay" class="total-pengeluaran"></div>
+            </div>
+            <div id="laporanBulanan" style="display:none;">
+                <h3>📋 Rekap Transaksi Lainnya (Per Bulan)</h3>
+                <div class="form-group"><label>Pilih Bulan</label><input type="month" id="bulanLaporan"></div>
+                <button id="btnGenerateBulanan" class="btn-report">🔄 Generate Laporan</button>
+                <div class="tabel-wrapper" style="margin-top:16px;"><div id="tabelLainnyaBulanan"></div></div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>📄 Laporan Keuangan Lengkap</h3>
+            <div class="tab-buttons">
+                <button id="btnViewLaporan" class="btn-tab" style="background:#3498db;">👁️ Lihat Laporan</button>
+                <button id="btnPrintLaporan" class="btn-tab" style="background:#27ae60;">🖨️ Cetak Laporan</button>
+            </div>
+            <div id="laporanContent" class="laporan-area"></div>
+        </div>
+        <div class="card"><h3>📈 Grafik Penjualan Bulan Ini</h3>
+            <canvas id="grafikJajan"></canvas>
+            <canvas id="grafikParfum"></canvas>
+            <canvas id="grafikJumlahKendaraan"></canvas>
+            <canvas id="grafikPendapatanKendaraan"></canvas>
+        </div>
+    </div>
+
+    <!-- Page 3: Gaji Karyawan -->
+    <div id="page3" class="page">
+        <div class="card"><h3>📋 Daftar Karyawan</h3><button id="btnTambahKaryawan" style="background:#2c3e50">+ Tambah Karyawan</button><div class="tabel-wrapper" id="daftarKaryawan"></div></div>
+        <div class="card"><h3>💰 Gaji Hari Ini (Detail Kendaraan)</h3><div class="tabel-wrapper" id="gajiHarian"></div></div>
+        <div class="card"><h3>📅 Gaji Bulanan</h3><div class="tabel-wrapper" id="gajiBulanan"></div></div>
+        <div class="card"><h3>📆 Gaji Mingguan + Kasbon</h3><div class="tabel-wrapper" id="gajiMingguan"></div></div>
+        <div class="card"><h3>💰 Kasbon</h3><button id="btnTambahKasbon" style="background:#e67e22">+ Tambah Kasbon</button><div class="tabel-wrapper" id="kasbonList"></div></div>
+    </div>
+
+    <!-- Page 4: Master Stok -->
+    <div id="page4" class="page">
+        <div class="card"><h3>🍬 Master Jajan</h3><div class="tabel-wrapper" id="masterJajan"></div></div>
+        <div class="card"><h3>✨ Master Parfum</h3><div class="tabel-wrapper" id="masterParfum"></div></div>
+    </div>
+</div>
+
+<div id="modalNota" class="modal-nota">
+    <div class="modal-nota-content">
+        <div class="nota-header">
+            <h2 id="notaNamaUsaha">🧼 CUCIAN KITA</h2>
+            <p id="notaAlamat">Jl. Contoh No. 123, Kota</p>
+            <p id="notaTelp">Telp: 0812-3456-7890</p>
+            <p id="notaTanggalJam"></p>
+        </div>
+        <div class="nota-body" id="notaBody"></div>
+        <div class="nota-footer">
+            <button id="btnNotaCetak" style="background:#2ecc71;">🖨️ Cetak</button>
+            <button id="btnNotaEdit" style="background:#f39c12;">✏️ Edit</button>
+            <button id="btnNotaBatal" style="background:#e74c3c;">❌ Batal</button>
+            <button id="btnNotaSelesai" style="background:#27ae60;">✅ Selesai</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalSetting" class="modal-setting">
+    <div class="modal-setting-content">
+        <span class="close-modal" id="closeSettingModal">&times;</span>
+        <h3>⚙️ Pengaturan Nota</h3>
+        <div class="form-group"><label>Nama Usaha</label><input type="text" id="settingNamaUsaha"></div>
+        <div class="form-group"><label>Alamat</label><input type="text" id="settingAlamat"></div>
+        <div class="form-group"><label>No. Telepon</label><input type="text" id="settingTelp"></div>
+        <button id="btnSimpanSetting" class="btn-add">💾 Simpan</button>
+    </div>
+</div>
+
+<div id="modalEdit" class="modal-edit">
+    <div class="modal-edit-content">
+        <span class="close-modal" id="closeEditModal">&times;</span>
+        <h3>✏️ Edit Transaksi</h3>
+        <div id="editFormContainer"></div>
+        <button id="btnSimpanEdit" style="background:#27ae60; margin-top:15px;">💾 Simpan Perubahan</button>
+    </div>
+</div>
+
+<div class="save-status" id="saveStatus">Tersimpan</div>
+<div class="loader" id="loader" style="display:none;">Loading...</div>
+
+<script>
+    // Konfigurasi
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby-jq9s_3Y4NN6_TKcfTI8w27hajHwHWcbAMI9Nb2JXyj5ZJKpsk7THjiu-D2EVN4H5/exec';
+    let allData = {};
+    let currentDate = new Date().toISOString().slice(0,10);
+    let masterKaryawan = [];
+    let karyawanStatusHistory = [];
+    let masterJajan = [];
+    let masterParfum = [];
+    let settingNota = { namaUsaha: '🧼 CUCIAN KITA', alamat: 'Jl. Contoh No. 123, Kota', telp: 'Telp: 0812-3456-7890' };
+    let cartParfum = [];
+    let cartJajan = [];
+    let pendingTransaksi = null;
+    let currentEditIndex = null;
+    let editParfumItems = [];
+    let editJajanItems = [];
+
+    // Utility Functions
+    function formatRupiah(angka) { if(isNaN(angka)) angka=0; return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka); }
+    function getCurrentTime() { let n=new Date(); return n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'); }
+    function formatLocalDate(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    function formatTanggalIndonesia(tgl) { let p=tgl.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+    function showLoader() { document.getElementById('loader').style.display='flex'; }
+    function hideLoader() { document.getElementById('loader').style.display='none'; }
+    function showSaveStatus(msg) { let s=document.getElementById('saveStatus'); s.innerText=msg||'Tersimpan'; s.style.opacity='1'; setTimeout(function(){ s.style.opacity='0'; },1800); }
+
+    // Paper width
+    let paperWidth = localStorage.getItem('paperWidth') || '80';
+    function applyPaperWidth() {
+        paperWidth = document.getElementById('paperWidth').value;
+        localStorage.setItem('paperWidth', paperWidth);
+        let style = document.getElementById('printPaperStyle');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'printPaperStyle';
+            document.head.appendChild(style);
+        }
+        style.innerHTML = '@media print { .modal-nota-content { width: ' + paperWidth + 'mm !important; max-width: ' + paperWidth + 'mm !important; } }';
+        alert('Ukuran kertas: ' + paperWidth + ' mm');
+    }
+    function loadPaperWidth() { let saved = localStorage.getItem('paperWidth'); if(saved){ paperWidth=saved; document.getElementById('paperWidth').value=paperWidth; applyPaperWidth(); } }
+    document.getElementById('applyPaperWidth').onclick = applyPaperWidth;
+
+    // Save & Load
+    async function saveAll() {
+        let data = { allData: allData, masterKaryawan: masterKaryawan, karyawanStatusHistory: karyawanStatusHistory, masterJajan: masterJajan, masterParfum: masterParfum };
+        try { 
+            showLoader(); 
+            await fetch(WEBAPP_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }); 
+            hideLoader(); 
+            showSaveStatus('Tersimpan ke Cloud'); 
+            localStorage.setItem('backupCucian', JSON.stringify(data)); 
+        } catch(e) { 
+            hideLoader(); 
+            showSaveStatus('Gagal simpan'); 
+            localStorage.setItem('backupCucian', JSON.stringify(data)); 
+        }
+    }
+    
+    async function loadAll() {
+        try { 
+            showLoader(); 
+            let res=await fetch(WEBAPP_URL); 
+            let text=await res.text(); 
+            let data=JSON.parse(text); 
+            hideLoader(); 
+            if(data && Object.keys(data).length){ 
+                allData=data.allData||{}; 
+                masterKaryawan=data.masterKaryawan||[]; 
+                karyawanStatusHistory=data.karyawanStatusHistory||[]; 
+                masterJajan=data.masterJajan||[]; 
+                masterParfum=data.masterParfum||[]; 
+            } 
+        } catch(e) { 
+            hideLoader(); 
+            let backup=localStorage.getItem('backupCucian'); 
+            if(backup){ 
+                let data=JSON.parse(backup); 
+                allData=data.allData||{}; 
+                masterKaryawan=data.masterKaryawan||[]; 
+                karyawanStatusHistory=data.karyawanStatusHistory||[]; 
+                masterJajan=data.masterJajan||[]; 
+                masterParfum=data.masterParfum||[]; 
+            } 
+        }
+    }
+
+    // Core Functions
+    function getStatusKaryawan(id, tgl) { 
+        let r=karyawanStatusHistory.filter(function(h){ return h.karyawanId===id && h.tanggalMulai<=tgl; }); 
+        if(!r.length) return "Training"; 
+        r.sort(function(a,b){ return b.tanggalMulai.localeCompare(a.tanggalMulai); }); 
+        return r[0].status; 
+    }
+    
+    function getDataHari() { 
+        if(!allData[currentDate]) allData[currentDate]={ transaksi:[], pengeluaran:[], kasbon:[] }; 
+        return allData[currentDate]; 
+    }
+    
+    function hitungGajiPerMobil(harga, ids, tgl) { 
+        var hasil=harga/2; 
+        var training=[], staf=[]; 
+        for(var i=0;i<ids.length;i++){ 
+            var id=ids[i];
+            if(getStatusKaryawan(id,tgl)==='Training') training.push(id); 
+            else staf.push(id); 
+        } 
+        var totalTrainingFlat=training.length*2500; 
+        var res={}; 
+        if(hasil<=totalTrainingFlat){ 
+            var per=hasil/(training.length||1); 
+            for(var a=0;a<training.length;a++) res[training[a]]=per; 
+            for(var b=0;b<staf.length;b++) res[staf[b]]=0; 
+            return res; 
+        } 
+        for(var c=0;c<training.length;c++) res[training[c]]=2500; 
+        var sisa=hasil-totalTrainingFlat; 
+        if(staf.length){ 
+            var perStaf=sisa/staf.length; 
+            for(var d=0;d<staf.length;d++) res[staf[d]]=perStaf; 
+        } else { 
+            var tambah=sisa/(training.length||1); 
+            for(var e=0;e<training.length;e++) res[training[e]]+=tambah; 
+        } 
+        return res; 
+    }
+    
+    function getTotalKasbonHariIni() { 
+        var d=getDataHari(); 
+        var total=0; 
+        if(d.kasbon) for(var i=0;i<d.kasbon.length;i++) total+=d.kasbon[i].jumlah; 
+        return total; 
+    }
+    
+    function getGajiHarian(id, tgl) { 
+        var d=allData[tgl]; 
+        if(!d||!d.transaksi) return 0; 
+        var total=0; 
+        for(var i=0;i<d.transaksi.length;i++){ 
+            var t=d.transaksi[i];
+            if(t.karyawanIds && t.karyawanIds.indexOf(id)!==-1 && t.hargaCuci>0){ 
+                var gajiMap=hitungGajiPerMobil(t.hargaCuci, t.karyawanIds, tgl);
+                total+=gajiMap[id]||0;
+            }
+        }
+        return total; 
+    }
+    
+    function getDetailGajiHarian(id, tgl) {
+        var d=allData[tgl]; 
+        if(!d||!d.transaksi) return [];
+        var details = [];
+        for(var i=0;i<d.transaksi.length;i++) {
+            var t=d.transaksi[i];
+            if(t.karyawanIds && t.karyawanIds.indexOf(id)!==-1 && t.hargaCuci>0) {
+                var gajiMap = hitungGajiPerMobil(t.hargaCuci, t.karyawanIds, tgl);
+                var gaji = gajiMap[id] || 0;
+                if(gaji > 0) {
+                    var kendaraan = t.jenisKendaraan;
+                    if(t.namaKendaraan && t.namaKendaraan !== '-') kendaraan += ' - ' + t.namaKendaraan;
+                    details.push({
+                        kendaraan: kendaraan,
+                        hargaCuci: t.hargaCuci,
+                        gaji: gaji,
+                        waktu: t.waktu
+                    });
+                }
+            }
+        }
+        return details;
+    }
+
+    // Laporan Keuangan
+    function generateLaporanKeuangan(tanggal) {
+        var d = allData[tanggal] || { transaksi: [], pengeluaran: [], kasbon: [] };
+        var transaksi = d.transaksi || [];
+        var pengeluaran = d.pengeluaran || [];
+        var kasbonTotal = 0;
+        if(d.kasbon) for(var kb=0;kb<d.kasbon.length;kb++) kasbonTotal += d.kasbon[kb].jumlah;
+        
+        var jumlahMobil = 0, jumlahMotor = 0;
+        for(var i=0;i<transaksi.length;i++) {
+            if(transaksi[i].jenisKendaraan === 'Mobil') jumlahMobil++;
+            else if(transaksi[i].jenisKendaraan === 'Motor') jumlahMotor++;
+        }
+        
+        var totalPendapatanCucian = 0, pendapatanCashCucian = 0, pendapatanQrisCucian = 0, pendapatanLainnyaCucian = 0;
+        for(var i=0;i<transaksi.length;i++) {
+            var t=transaksi[i];
+            var hargaCuci = t.hargaCuci || 0;
+            totalPendapatanCucian += hargaCuci;
+            if(t.metodeBayar === 'Cash') pendapatanCashCucian += hargaCuci;
+            else if(t.metodeBayar === 'Qris') pendapatanQrisCucian += hargaCuci;
+            else if(t.metodeBayar === 'Lainnya') pendapatanLainnyaCucian += hargaCuci;
+        }
+        
+        var totalPengeluaran = 0;
+        for(var j=0;j<pengeluaran.length;j++) totalPengeluaran += pengeluaran[j].jumlah;
+        
+        var hasilCucianKotor = totalPendapatanCucian / 2;
+        var hasilCucianBersih = hasilCucianKotor - pendapatanQrisCucian - pendapatanLainnyaCucian - totalPengeluaran;
+        var hasilAnakKotor = totalPendapatanCucian / 2;
+        var hasilAnakBersih = hasilAnakKotor - kasbonTotal;
+        
+        var penjualanParfumQris = 0, penjualanParfumCash = 0;
+        var penjualanJajanQris = 0, penjualanJajanCash = 0;
+        for(var k=0;k<transaksi.length;k++) {
+            var tx=transaksi[k];
+            var totalParfum = tx.totalParfum || 0;
+            var totalJajan = tx.totalJajan || 0;
+            if(tx.metodeBayar === 'Qris') {
+                penjualanParfumQris += totalParfum;
+                penjualanJajanQris += totalJajan;
+            } else if(tx.metodeBayar === 'Cash') {
+                penjualanParfumCash += totalParfum;
+                penjualanJajanCash += totalJajan;
+            }
+        }
+        
+        var totalQrisCucian = pendapatanQrisCucian;
+        var totalQrisParfum = penjualanParfumQris;
+        var totalQrisJajan = penjualanJajanQris;
+        
+        var tglFormatted = formatTanggalIndonesia(tanggal);
+        var laporan = "╔══════════════════════════════════════════════════════════════╗\n";
+        laporan += "║            LAPORAN KEUANGAN CUCIAN TANGGAL " + tglFormatted + "           ║\n";
+        laporan += "╚══════════════════════════════════════════════════════════════╝\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 A. JUMLAH KENDARAAN\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "   🚗 Mobil : " + jumlahMobil + " unit\n";
+        laporan += "   🏍️ Motor : " + jumlahMotor + " unit\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 B. BAGIAN CUCIAN\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "1. Total Pendapatan Cucian     : " + formatRupiah(totalPendapatanCucian) + "\n";
+        laporan += "2. Pendapatan Cash (Cucian)    : " + formatRupiah(pendapatanCashCucian) + "\n";
+        laporan += "3. Pendapatan QRIS (Cucian)    : " + formatRupiah(pendapatanQrisCucian) + "\n";
+        laporan += "4. Pendapatan Lainnya (Cucian) : " + formatRupiah(pendapatanLainnyaCucian) + "\n";
+        laporan += "5. Pengeluaran                 : " + formatRupiah(totalPengeluaran) + "\n";
+        laporan += "6. Kasbon Anak Anak            : " + formatRupiah(kasbonTotal) + "\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 C. BAGI HASIL\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "1. Hasil Cucian Kotor (50%)    : " + formatRupiah(hasilCucianKotor) + "\n";
+        laporan += "2. Hasil Cucian Bersih         : " + formatRupiah(hasilCucianBersih) + "\n";
+        laporan += "3. Hasil Anak Anak Kotor (50%) : " + formatRupiah(hasilAnakKotor) + "\n";
+        laporan += "4. Hasil Anak Anak Bersih      : " + formatRupiah(hasilAnakBersih) + "\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 D. PARFUM\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "1. Penjualan Parfum QRIS       : " + formatRupiah(penjualanParfumQris) + "\n";
+        laporan += "2. Penjualan Parfum Cash       : " + formatRupiah(penjualanParfumCash) + "\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 E. JAJAN\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "1. Penjualan Jajan QRIS        : " + formatRupiah(penjualanJajanQris) + "\n";
+        laporan += "2. Penjualan Jajan Cash        : " + formatRupiah(penjualanJajanCash) + "\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "📌 F. SETORAN HARIAN\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        laporan += "💰 CASH:\n";
+        laporan += "   1. Hasil Cucian Bersih       : " + formatRupiah(hasilCucianBersih) + "\n";
+        laporan += "   2. Hasil Anak Anak Bersih    : " + formatRupiah(hasilAnakBersih) + "\n";
+        laporan += "   3. Penjualan Parfum Cash     : " + formatRupiah(penjualanParfumCash) + "\n";
+        laporan += "   4. Penjualan Jajan Cash      : " + formatRupiah(penjualanJajanCash) + "\n";
+        laporan += "   ─────────────────────────────────────────────────\n";
+        var totalCash = hasilCucianBersih + hasilAnakBersih + penjualanParfumCash + penjualanJajanCash;
+        laporan += "   TOTAL CASH                   : " + formatRupiah(totalCash) + "\n\n";
+        laporan += "📱 QRIS:\n";
+        laporan += "   1. Total Pendapatan Cucian QRIS : " + formatRupiah(totalQrisCucian) + "\n";
+        laporan += "   2. Total Pendapatan Parfum QRIS : " + formatRupiah(totalQrisParfum) + "\n";
+        laporan += "   3. Total Pendapatan Jajan QRIS  : " + formatRupiah(totalQrisJajan) + "\n";
+        laporan += "   ─────────────────────────────────────────────────\n";
+        var totalQris = totalQrisCucian + totalQrisParfum + totalQrisJajan;
+        laporan += "   TOTAL QRIS                   : " + formatRupiah(totalQris) + "\n\n";
+        laporan += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        return laporan;
+    }
+    
+    function generateLaporanBulanan(tahunBulan) {
+        var parts = tahunBulan.split('-');
+        var tahun = parts[0];
+        var bulan = parts[1];
+        var hasil = [];
+        for(var tgl in allData) {
+            if(tgl.indexOf(tahunBulan)===0) {
+                var transaksi = allData[tgl].transaksi || [];
+                for(var i=0;i<transaksi.length;i++) {
+                    var t=transaksi[i];
+                    if(t.metodeBayar === 'Lainnya') {
+                        var kendaraan = t.jenisKendaraan;
+                        if(t.namaKendaraan && t.namaKendaraan !== '-') kendaraan += ' - ' + t.namaKendaraan;
+                        hasil.push({
+                            tanggal: formatTanggalIndonesia(tgl),
+                            kendaraan: kendaraan,
+                            harga: t.hargaCuci || 0,
+                            keterangan: t.keteranganLainnya || '-'
+                        });
+                    }
+                }
+            }
+        }
+        if(hasil.length === 0) return '<p style="text-align:center;padding:20px;">Tidak ada transaksi dengan metode "Lainnya" pada bulan ini</p>';
+        
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Tanggal</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Kendaraan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Harga</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Keterangan</th>';
+        html += '</tr></thead><tbody>';
+        var totalLainnya = 0;
+        for(var j=0;j<hasil.length;j++) {
+            var item=hasil[j];
+            totalLainnya += item.harga;
+            html += '<tr>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + item.tanggal + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + item.kendaraan + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(item.harga) + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + item.keterangan + '</td>';
+            html += '</tr>';
+        }
+        html += '<tr style="background:#e0e0e0;font-weight:bold;">';
+        html += '<td colspan="2" style="padding:8px; border:1px solid #ddd;">TOTAL</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(totalLainnya) + '</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd;">-</td>';
+        html += '</tr>';
+        html += '</tbody></table>';
+        return html;
+    }
+    
+    function refreshLaporan() {
+        var laporan = generateLaporanKeuangan(currentDate);
+        document.getElementById('laporanContent').innerHTML = laporan.replace(/\n/g, '<br>');
+    }
+    
+    // Tab Laporan
+    document.getElementById('btnTabHarian').onclick = function() {
+        document.getElementById('laporanHarian').style.display = 'block';
+        document.getElementById('laporanBulanan').style.display = 'none';
+        this.style.background = '#3498db';
+        document.getElementById('btnTabBulanan').style.background = '#95a5a6';
+    };
+    document.getElementById('btnTabBulanan').onclick = function() {
+        document.getElementById('laporanHarian').style.display = 'none';
+        document.getElementById('laporanBulanan').style.display = 'block';
+        this.style.background = '#3498db';
+        document.getElementById('btnTabHarian').style.background = '#95a5a6';
+        var now = new Date(currentDate);
+        var defaultBulan = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+        document.getElementById('bulanLaporan').value = defaultBulan;
+        document.getElementById('tabelLainnyaBulanan').innerHTML = generateLaporanBulanan(defaultBulan);
+    };
+    document.getElementById('btnGenerateBulanan').onclick = function() {
+        var bulan = document.getElementById('bulanLaporan').value;
+        if(bulan) document.getElementById('tabelLainnyaBulanan').innerHTML = generateLaporanBulanan(bulan);
+    };
+    document.getElementById('btnViewLaporan').onclick = function() { refreshLaporan(); };
+    document.getElementById('btnPrintLaporan').onclick = function() {
+        var win = window.open('', '_blank');
+        win.document.write('<html><head><title>Laporan Keuangan</title><style>body{font-family:"Courier New",monospace;padding:20px;}</style></head><body>');
+        win.document.write('<pre>' + document.getElementById('laporanContent').innerText + '</pre>');
+        win.document.write('</body></html>');
+        win.document.close();
+        win.print();
+    };
+
+    // Cart Functions
+    function renderParfumList() { 
+        var container = document.getElementById('parfumList'); 
+        if(!container) return; 
+        if(masterParfum.length===0){ 
+            container.innerHTML='<p style="padding:8px">Belum ada parfum</p>'; 
+            return; 
+        } 
+        var html=''; 
+        for(var i=0;i<masterParfum.length;i++) {
+            var p=masterParfum[i];
+            html+='<label><input type="checkbox" class="cbParfum" value="'+p.id+'" data-nama="'+p.nama+'" data-harga="'+p.harga+'"> '+p.nama+' - '+formatRupiah(p.harga)+' (Stok: '+p.stok+')</label>'; 
+        }
+        container.innerHTML=html; 
+    }
+    
+    function attachParfumEvents() {
+        var cbs = document.querySelectorAll('.cbParfum');
+        for(var i=0;i<cbs.length;i++){
+            cbs[i].onclick=function(e){ 
+                e.stopPropagation();
+                var id=this.value, nama=this.dataset.nama, harga=parseInt(this.dataset.harga); 
+                if(this.checked){ 
+                    var exist=null;
+                    for(var j=0;j<cartParfum.length;j++) if(cartParfum[j].id===id) exist=cartParfum[j];
+                    if(exist) exist.qty++; 
+                    else cartParfum.push({id:id,nama:nama,harga:harga,qty:1}); 
+                } else { 
+                    for(var k=0;k<cartParfum.length;k++) if(cartParfum[k].id===id) cartParfum.splice(k,1); 
+                } 
+                renderCartParfum(); 
+            }; 
+        }
+    }
+    
+    function renderCartParfum() { 
+        var c = document.getElementById('keranjangParfum'); 
+        if(!c) return; 
+        if(cartParfum.length===0){ 
+            c.innerHTML='<em>Keranjang kosong</em>'; 
+            return; 
+        } 
+        var html='<strong>Keranjang:</strong>'; 
+        for(var i=0;i<cartParfum.length;i++){ 
+            var it=cartParfum[i]; 
+            html+='<div class="keranjang-item">✨ '+it.nama+' x'+it.qty+' = '+formatRupiah(it.harga*it.qty)+'<div><button class="btn-small" onclick="kurangiParfum('+i+')">-</button><button class="btn-small" onclick="tambahParfum('+i+')">+</button><button class="btn-small" onclick="hapusParfum('+i+')" style="background:#e74c3c;">X</button></div></div>'; 
+        } 
+        c.innerHTML=html; 
+    }
+    
+    function renderJajanList() { 
+        var container = document.getElementById('jajanList'); 
+        if(masterJajan.length===0){ 
+            container.innerHTML='<p style="padding:8px">Belum ada jajan</p>'; 
+            return; 
+        } 
+        var html=''; 
+        for(var i=0;i<masterJajan.length;i++) {
+            var j=masterJajan[i];
+            html+='<label><input type="checkbox" class="cbJajan" value="'+j.id+'" data-nama="'+j.nama+'" data-harga="'+j.harga+'"> '+j.nama+' - '+formatRupiah(j.harga)+' (Stok: '+j.stok+')</label>'; 
+        }
+        container.innerHTML=html; 
+    }
+    
+    function attachJajanEvents() {
+        var cbs = document.querySelectorAll('.cbJajan');
+        for(var i=0;i<cbs.length;i++){
+            cbs[i].onclick=function(e){ 
+                e.stopPropagation();
+                var id=this.value, nama=this.dataset.nama, harga=parseInt(this.dataset.harga); 
+                if(this.checked){ 
+                    var exist=null;
+                    for(var j=0;j<cartJajan.length;j++) if(cartJajan[j].id===id) exist=cartJajan[j];
+                    if(exist) exist.qty++; 
+                    else cartJajan.push({id:id,nama:nama,harga:harga,qty:1}); 
+                } else { 
+                    for(var k=0;k<cartJajan.length;k++) if(cartJajan[k].id===id) cartJajan.splice(k,1); 
+                } 
+                renderCartJajan(); 
+            }; 
+        }
+    }
+    
+    function renderCartJajan() { 
+        var c = document.getElementById('keranjangJajan'); 
+        if(!c) return; 
+        if(cartJajan.length===0){ 
+            c.innerHTML='<em>Keranjang kosong</em>'; 
+            return; 
+        } 
+        var html='<strong>Keranjang:</strong>'; 
+        for(var i=0;i<cartJajan.length;i++){ 
+            var it=cartJajan[i]; 
+            html+='<div class="keranjang-item">🍬 '+it.nama+' x'+it.qty+' = '+formatRupiah(it.harga*it.qty)+'<div><button class="btn-small" onclick="kurangiJajan('+i+')">-</button><button class="btn-small" onclick="tambahJajan('+i+')">+</button><button class="btn-small" onclick="hapusJajan('+i+')" style="background:#e74c3c;">X</button></div></div>'; 
+        } 
+        c.innerHTML=html; 
+    }
+    
+    window.kurangiParfum = function(i){ 
+        if(cartParfum[i].qty>1) cartParfum[i].qty--; 
+        else{ 
+            var id=cartParfum[i].id; 
+            cartParfum.splice(i,1); 
+            var cb=document.querySelector('.cbParfum[value="'+id+'"]'); 
+            if(cb) cb.checked=false; 
+        } 
+        renderCartParfum(); 
+    };
+    window.tambahParfum = function(i){ cartParfum[i].qty++; renderCartParfum(); };
+    window.hapusParfum = function(i){ 
+        var id=cartParfum[i].id; 
+        cartParfum.splice(i,1); 
+        var cb=document.querySelector('.cbParfum[value="'+id+'"]'); 
+        if(cb) cb.checked=false; 
+        renderCartParfum(); 
+    };
+    window.kurangiJajan = function(i){ 
+        if(cartJajan[i].qty>1) cartJajan[i].qty--; 
+        else{ 
+            var id=cartJajan[i].id; 
+            cartJajan.splice(i,1); 
+            var cb=document.querySelector('.cbJajan[value="'+id+'"]'); 
+            if(cb) cb.checked=false; 
+        } 
+        renderCartJajan(); 
+    };
+    window.tambahJajan = function(i){ cartJajan[i].qty++; renderCartJajan(); };
+    window.hapusJajan = function(i){ 
+        var id=cartJajan[i].id; 
+        cartJajan.splice(i,1); 
+        var cb=document.querySelector('.cbJajan[value="'+id+'"]'); 
+        if(cb) cb.checked=false; 
+        renderCartJajan(); 
+    };
+
+    // Nota Functions
+    function showNota(transaksi, waktuTransaksi) { 
+        pendingTransaksi = transaksi; 
+        document.getElementById('notaNamaUsaha').innerHTML = settingNota.namaUsaha; 
+        document.getElementById('notaAlamat').innerHTML = settingNota.alamat; 
+        document.getElementById('notaTelp').innerHTML = settingNota.telp; 
+        document.getElementById('notaTanggalJam').innerHTML = formatTanggalIndonesia(currentDate) + ' | ' + waktuTransaksi; 
+        var html = '<div style="display:flex; justify-content:space-between; margin-bottom:8px;"><div><strong>Item</strong></div><div><strong>Harga</strong></div></div><hr style="margin:5px 0;">'; 
+        if(transaksi.jenisKendaraan !== 'Tidak Ada' && transaksi.hargaCuci > 0){ 
+            var kendaraanText = transaksi.jenisKendaraan; 
+            if(transaksi.namaKendaraan && transaksi.namaKendaraan !== '-') kendaraanText += ' - ' + transaksi.namaKendaraan; 
+            html += '<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><div>🚗 ' + kendaraanText + '</div><div>' + formatRupiah(transaksi.hargaCuci) + '</div></div>'; 
+        } 
+        for(var i=0;i<(transaksi.parfum||[]).length;i++){ var p=transaksi.parfum[i]; html += '<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><div>✨ ' + p.nama + ' x' + p.qty + '</div><div>' + formatRupiah(p.harga*p.qty) + '</div></div>'; }
+        for(var j=0;j<(transaksi.jajan||[]).length;j++){ var jn=transaksi.jajan[j]; html += '<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><div>🍬 ' + jn.nama + ' x' + jn.qty + '</div><div>' + formatRupiah(jn.harga*jn.qty) + '</div></div>'; }
+        html += '<hr style="margin:8px 0;"><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;"><div>TOTAL</div><div>' + formatRupiah(transaksi.total) + '</div></div>'; 
+        var metodeDisplay = transaksi.metodeBayar; 
+        if(transaksi.metodeBayar === 'Lainnya' && transaksi.keteranganLainnya) metodeDisplay = 'Lainnya: ' + transaksi.keteranganLainnya; 
+        html += '<div style="background:#ecf0f1; padding:8px; border-radius:12px; margin-top:10px; font-size:11px;"><strong>💳 Metode:</strong> ' + metodeDisplay + '</div>'; 
+        document.getElementById('notaBody').innerHTML = html; 
+        document.getElementById('modalNota').style.display = 'flex'; 
+    }
+    
+    document.getElementById('btnNotaCetak').onclick = function(){ 
+        var printContents = document.getElementById('modalNota').cloneNode(true); 
+        printContents.style.display = 'flex'; 
+        printContents.style.position = 'fixed'; 
+        printContents.style.top = '0'; 
+        printContents.style.left = '0'; 
+        printContents.style.width = '100%'; 
+        printContents.style.height = '100%'; 
+        printContents.style.zIndex = '9999'; 
+        printContents.style.background = 'white'; 
+        document.body.appendChild(printContents); 
+        window.print(); 
+        document.body.removeChild(printContents); 
+    };
+    document.getElementById('btnNotaEdit').onclick = function(){ 
+        document.getElementById('modalNota').style.display = 'none'; 
+        if(pendingTransaksi) editTransaksiPopup(pendingTransaksi); 
+    };
+    document.getElementById('btnNotaBatal').onclick = function(){ 
+        if(confirm('Batalkan transaksi?')){ 
+            pendingTransaksi = null; 
+            document.getElementById('modalNota').style.display = 'none'; 
+        } 
+    };
+    document.getElementById('btnNotaSelesai').onclick = async function(){ 
+        if(pendingTransaksi){ 
+            await simpanTransaksiKeDatabase(pendingTransaksi); 
+            pendingTransaksi = null; 
+            document.getElementById('modalNota').style.display = 'none'; 
+            refreshAll(); 
+            showSaveStatus('Transaksi tersimpan!'); 
+        } 
+    };
+    
+    async function simpanTransaksiKeDatabase(transaksi){ 
+        var d = getDataHari(); 
+        if(!d.transaksi) d.transaksi = []; 
+        d.transaksi.push(transaksi); 
+        await saveAll(); 
+    }
+
+    // Edit Popup Functions
+    function editTransaksiPopup(transaksi){ 
+        currentEditIndex = null; 
+        editParfumItems = JSON.parse(JSON.stringify(transaksi.parfum || []));
+        editJajanItems = JSON.parse(JSON.stringify(transaksi.jajan || []));
+        
+        var karyawanHtml = ''; 
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var checked = (transaksi.karyawanIds && transaksi.karyawanIds.indexOf(k.id)!==-1) ? 'checked' : ''; 
+            karyawanHtml += '<label style="display:block; margin-bottom:8px;"><input type="checkbox" class="editCekKaryawan" value="' + k.id + '" ' + checked + '> ' + k.nama + '</label>'; 
+        }
+        
+        var parfumHtml = '<div id="editParfumContainer">';
+        for(var p=0;p<editParfumItems.length;p++){
+            var item = editParfumItems[p];
+            parfumHtml += '<div class="edit-item-row">✨ ' + item.nama + ' - <input type="number" class="editParfumQty" data-id="'+item.id+'" value="'+item.qty+'" style="width:60px;" min="0" onchange="updateEditParfumQty('+p+',this.value)"> <button type="button" class="btn-small" onclick="hapusEditParfum('+p+')" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        parfumHtml += '</div><div class="form-group"><select id="tambahParfumSelect" style="width:70%; display:inline-block; margin-right:5px;"><option value="">-- Pilih Parfum --</option>';
+        for(var mp=0;mp<masterParfum.length;mp++){
+            parfumHtml += '<option value="'+masterParfum[mp].id+'" data-nama="'+masterParfum[mp].nama+'" data-harga="'+masterParfum[mp].harga+'">'+masterParfum[mp].nama+' - '+formatRupiah(masterParfum[mp].harga)+'</option>';
+        }
+        parfumHtml += '</select><button type="button" class="btn-small" onclick="tambahEditParfum()" style="width:25%; background:#27ae60;">+ Tambah</button></div>';
+        
+        var jajanHtml = '<div id="editJajanContainer">';
+        for(var j=0;j<editJajanItems.length;j++){
+            var itemJ = editJajanItems[j];
+            jajanHtml += '<div class="edit-item-row">🍬 ' + itemJ.nama + ' - <input type="number" class="editJajanQty" data-id="'+itemJ.id+'" value="'+itemJ.qty+'" style="width:60px;" min="0" onchange="updateEditJajanQty('+j+',this.value)"> <button type="button" class="btn-small" onclick="hapusEditJajan('+j+')" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        jajanHtml += '</div><div class="form-group"><select id="tambahJajanSelect" style="width:70%; display:inline-block; margin-right:5px;"><option value="">-- Pilih Jajan --</option>';
+        for(var mj=0;mj<masterJajan.length;mj++){
+            jajanHtml += '<option value="'+masterJajan[mj].id+'" data-nama="'+masterJajan[mj].nama+'" data-harga="'+masterJajan[mj].harga+'">'+masterJajan[mj].nama+' - '+formatRupiah(masterJajan[mj].harga)+'</option>';
+        }
+        jajanHtml += '</select><button type="button" class="btn-small" onclick="tambahEditJajan()" style="width:25%; background:#27ae60;">+ Tambah</button></div>';
+        
+        document.getElementById('editFormContainer').innerHTML = `
+            <div class="form-group"><label>Jam</label><input type="text" id="editWaktu" value="${transaksi.waktu}"></div>
+            <div class="form-group"><label>Jenis Kendaraan</label><select id="editJenisKendaraan"><option ${transaksi.jenisKendaraan==='Mobil'?'selected':''}>Mobil</option><option ${transaksi.jenisKendaraan==='Motor'?'selected':''}>Motor</option><option ${transaksi.jenisKendaraan==='Tidak Ada'?'selected':''}>Tidak Ada</option></select></div>
+            <div class="form-group"><label>Nama Kendaraan</label><input type="text" id="editNamaKendaraan" value="${transaksi.namaKendaraan!=='-'?transaksi.namaKendaraan:''}"></div>
+            <div class="form-group"><label>Metode Bayar</label><select id="editMetodeBayar"><option ${transaksi.metodeBayar==='Cash'?'selected':''}>Cash</option><option ${transaksi.metodeBayar==='Qris'?'selected':''}>Qris</option><option ${transaksi.metodeBayar==='Lainnya'?'selected':''}>Lainnya</option></select></div>
+            <div class="form-group"><label>Keterangan Lainnya</label><input type="text" id="editKeteranganLainnya" value="${transaksi.keteranganLainnya||''}"></div>
+            <div class="form-group"><label>Harga Cuci</label><input type="number" id="editHargaCuci" value="${transaksi.hargaCuci}"></div>
+            <div class="form-group"><label>Karyawan</label><div id="editKaryawanList">${karyawanHtml}</div></div>
+            <div class="form-group"><label>✨ Parfum</label>${parfumHtml}</div>
+            <div class="form-group"><label>🍬 Jajan</label>${jajanHtml}</div>`; 
+        window.pendingEditTransaksi = transaksi; 
+        document.getElementById('modalEdit').style.display = 'flex'; 
+    }
+    
+    window.tambahEditParfum = function() {
+        var select = document.getElementById('tambahParfumSelect');
+        var id = select.value;
+        if(!id) return;
+        var option = select.options[select.selectedIndex];
+        var nama = option.dataset.nama;
+        var harga = parseInt(option.dataset.harga);
+        var exist = null;
+        for(var j=0;j<editParfumItems.length;j++) if(editParfumItems[j].id===id) exist=editParfumItems[j];
+        if(exist){
+            exist.qty++;
+        } else {
+            editParfumItems.push({id: id, nama: nama, harga: harga, qty: 1});
+        }
+        refreshEditParfumDisplay();
+        select.value = '';
+    };
+    
+    window.hapusEditParfum = function(idx) {
+        editParfumItems.splice(idx,1);
+        refreshEditParfumDisplay();
+    };
+    
+    window.updateEditParfumQty = function(idx, val) {
+        var qty = parseInt(val);
+        if(isNaN(qty) || qty < 0) qty = 0;
+        if(qty === 0){
+            editParfumItems.splice(idx,1);
+            refreshEditParfumDisplay();
+        } else {
+            editParfumItems[idx].qty = qty;
+        }
+    };
+    
+    function refreshEditParfumDisplay() {
+        var container = document.getElementById('editParfumContainer');
+        if(!container) return;
+        var html = '';
+        for(var p=0;p<editParfumItems.length;p++){
+            var item = editParfumItems[p];
+            html += '<div class="edit-item-row">✨ ' + item.nama + ' - <input type="number" class="editParfumQty" data-id="'+item.id+'" value="'+item.qty+'" style="width:60px;" min="0" onchange="updateEditParfumQty('+p+',this.value)"> <button type="button" class="btn-small" onclick="hapusEditParfum('+p+')" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        container.innerHTML = html;
+    }
+    
+    window.tambahEditJajan = function() {
+        var select = document.getElementById('tambahJajanSelect');
+        var id = select.value;
+        if(!id) return;
+        var option = select.options[select.selectedIndex];
+        var nama = option.dataset.nama;
+        var harga = parseInt(option.dataset.harga);
+        var exist = null;
+        for(var j=0;j<editJajanItems.length;j++) if(editJajanItems[j].id===id) exist=editJajanItems[j];
+        if(exist){
+            exist.qty++;
+        } else {
+            editJajanItems.push({id: id, nama: nama, harga: harga, qty: 1});
+        }
+        refreshEditJajanDisplay();
+        select.value = '';
+    };
+    
+    window.hapusEditJajan = function(idx) {
+        editJajanItems.splice(idx,1);
+        refreshEditJajanDisplay();
+    };
+    
+    window.updateEditJajanQty = function(idx, val) {
+        var qty = parseInt(val);
+        if(isNaN(qty) || qty < 0) qty = 0;
+        if(qty === 0){
+            editJajanItems.splice(idx,1);
+            refreshEditJajanDisplay();
+        } else {
+            editJajanItems[idx].qty = qty;
+        }
+    };
+    
+    function refreshEditJajanDisplay() {
+        var container = document.getElementById('editJajanContainer');
+        if(!container) return;
+        var html = '';
+        for(var j=0;j<editJajanItems.length;j++){
+            var item = editJajanItems[j];
+            html += '<div class="edit-item-row">🍬 ' + item.nama + ' - <input type="number" class="editJajanQty" data-id="'+item.id+'" value="'+item.qty+'" style="width:60px;" min="0" onchange="updateEditJajanQty('+j+',this.value)"> <button type="button" class="btn-small" onclick="hapusEditJajan('+j+')" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        container.innerHTML = html;
+    }
+    
+    document.getElementById('btnSimpanEdit').onclick = async function(){ 
+        if(currentEditIndex !== null){ 
+            var d = getDataHari(); 
+            var t = d.transaksi[currentEditIndex]; 
+            if(t){ 
+                t.waktu = document.getElementById('editWaktu2').value; 
+                t.jenisKendaraan = document.getElementById('editJenisKendaraan2').value; 
+                t.namaKendaraan = document.getElementById('editNamaKendaraan2').value.trim() || '-'; 
+                t.metodeBayar = document.getElementById('editMetodeBayar2').value; 
+                t.keteranganLainnya = document.getElementById('editKeteranganLainnya2').value; 
+                t.hargaCuci = parseInt(document.getElementById('editHargaCuci2').value) || 0; 
+                t.karyawanIds = []; 
+                var cek = document.querySelectorAll('.editCekKaryawan2:checked');
+                for(var i=0;i<cek.length;i++) t.karyawanIds.push(cek[i].value);
+                
+                var newParfum = [];
+                var parfumInputs = document.querySelectorAll('#editParfumContainer2 .editParfumQty');
+                for(var ip=0;ip<parfumInputs.length;ip++){
+                    var input = parfumInputs[ip];
+                    var id = input.dataset.id;
+                    var qty = parseInt(input.value);
+                    if(qty > 0){
+                        var master = null;
+                        for(var mp=0;mp<masterParfum.length;mp++) if(masterParfum[mp].id===id) master=masterParfum[mp];
+                        if(master){
+                            newParfum.push({id: id, nama: master.nama, harga: master.harga, qty: qty});
+                        }
+                    }
+                }
+                t.parfum = newParfum;
+                t.totalParfum = 0;
+                for(var tp=0;tp<newParfum.length;tp++) t.totalParfum += newParfum[tp].harga * newParfum[tp].qty;
+                
+                var newJajan = [];
+                var jajanInputs = document.querySelectorAll('#editJajanContainer2 .editJajanQty');
+                for(var ij=0;ij<jajanInputs.length;ij++){
+                    var inputJ = jajanInputs[ij];
+                    var idJ = inputJ.dataset.id;
+                    var qtyJ = parseInt(inputJ.value);
+                    if(qtyJ > 0){
+                        var masterJ = null;
+                        for(var mj=0;mj<masterJajan.length;mj++) if(masterJajan[mj].id===idJ) masterJ=masterJajan[mj];
+                        if(masterJ){
+                            newJajan.push({id: idJ, nama: masterJ.nama, harga: masterJ.harga, qty: qtyJ});
+                        }
+                    }
+                }
+                t.jajan = newJajan;
+                t.totalJajan = 0;
+                for(var tj=0;tj<newJajan.length;tj++) t.totalJajan += newJajan[tj].harga * newJajan[tj].qty;
+                t.total = t.hargaCuci + t.totalParfum + t.totalJajan;
+                
+                await saveAll(); 
+                refreshAll(); 
+                document.getElementById('modalEdit').style.display = 'none'; 
+                alert('Transaksi berhasil diupdate'); 
+                currentEditIndex = null; 
+            } 
+        } else if(window.pendingEditTransaksi){ 
+            var t = window.pendingEditTransaksi; 
+            t.waktu = document.getElementById('editWaktu').value; 
+            t.jenisKendaraan = document.getElementById('editJenisKendaraan').value; 
+            t.namaKendaraan = document.getElementById('editNamaKendaraan').value.trim() || '-'; 
+            t.metodeBayar = document.getElementById('editMetodeBayar').value; 
+            t.keteranganLainnya = document.getElementById('editKeteranganLainnya').value; 
+            t.hargaCuci = parseInt(document.getElementById('editHargaCuci').value) || 0; 
+            t.karyawanIds = []; 
+            var cek2 = document.querySelectorAll('.editCekKaryawan:checked');
+            for(var j=0;j<cek2.length;j++) t.karyawanIds.push(cek2[j].value);
+            
+            t.parfum = editParfumItems;
+            t.totalParfum = 0;
+            for(var tp=0;tp<editParfumItems.length;tp++) t.totalParfum += editParfumItems[tp].harga * editParfumItems[tp].qty;
+            t.jajan = editJajanItems;
+            t.totalJajan = 0;
+            for(var tj=0;tj<editJajanItems.length;tj++) t.totalJajan += editJajanItems[tj].harga * editJajanItems[tj].qty;
+            t.total = t.hargaCuci + t.totalParfum + t.totalJajan;
+            
+            document.getElementById('modalEdit').style.display = 'none'; 
+            showNota(t, t.waktu); 
+            window.pendingEditTransaksi = null; 
+        } 
+    };
+    
+    document.getElementById('btnTambahTransaksi').onclick = async function(){ 
+        var jenis = document.querySelector('input[name="jenisKendaraan"]:checked'); 
+        var metode = document.querySelector('input[name="metodeBayar"]:checked'); 
+        var namaKendaraan = document.getElementById('namaKendaraan').value.trim(); 
+        var hargaCuci = parseInt(document.getElementById('hargaCuci').value) || 0; 
+        var karyawanCek = document.querySelectorAll('#karyawanList .cekKaryawan:checked');
+        var karyawanIds = [];
+        for(var i=0;i<karyawanCek.length;i++) karyawanIds.push(karyawanCek[i].value);
+        var waktu = document.getElementById('jamTransaksi').value.trim(); 
+        var keteranganLainnya = document.getElementById('keteranganLainnya').value.trim(); 
+        if(!metode){ alert('Pilih metode bayar'); return; } 
+        if(karyawanIds.length === 0 && hargaCuci > 0){ alert('Pilih karyawan untuk cuci!'); return; } 
+        if(metode.value === 'Lainnya' && !keteranganLainnya && (hargaCuci>0 || cartParfum.length>0 || cartJajan.length>0)){ alert('Isi keterangan untuk Lainnya!'); return; } 
+        for(var p=0;p<cartParfum.length;p++){ 
+            var masterP = null;
+            for(var mp=0;mp<masterParfum.length;mp++) if(masterParfum[mp].id===cartParfum[p].id) masterP=masterParfum[mp];
+            if(!masterP || cartParfum[p].qty > masterP.stok){ alert('Stok ' + cartParfum[p].nama + ' tidak cukup!'); return; } 
+        } 
+        for(var j=0;j<cartJajan.length;j++){ 
+            var masterJ = null;
+            for(var mj=0;mj<masterJajan.length;mj++) if(masterJajan[mj].id===cartJajan[j].id) masterJ=masterJajan[mj];
+            if(!masterJ || cartJajan[j].qty > masterJ.stok){ alert('Stok ' + cartJajan[j].nama + ' tidak cukup!'); return; } 
+        } 
+        for(var pp=0;pp<cartParfum.length;pp++){ 
+            for(var mp2=0;mp2<masterParfum.length;mp2++) if(masterParfum[mp2].id===cartParfum[pp].id) masterParfum[mp2].stok -= cartParfum[pp].qty;
+        } 
+        for(var jj=0;jj<cartJajan.length;jj++){ 
+            for(var mj2=0;mj2<masterJajan.length;mj2++) if(masterJajan[mj2].id===cartJajan[jj].id) masterJajan[mj2].stok -= cartJajan[jj].qty;
+        } 
+        if(waktu === '') waktu = getCurrentTime(); 
+        var totalParfum = 0;
+        for(var tp=0;tp<cartParfum.length;tp++) totalParfum += cartParfum[tp].harga * cartParfum[tp].qty;
+        var totalJajan = 0;
+        for(var tj=0;tj<cartJajan.length;tj++) totalJajan += cartJajan[tj].harga * cartJajan[tj].qty;
+        var transaksi = { 
+            id: Date.now(), waktu: waktu, jenisKendaraan: jenis.value, namaKendaraan: namaKendaraan||'-', 
+            metodeBayar: metode.value, keteranganLainnya: (metode.value==='Lainnya') ? keteranganLainnya : '', 
+            hargaCuci: hargaCuci, karyawanIds: karyawanIds, parfum: JSON.parse(JSON.stringify(cartParfum)), 
+            jajan: JSON.parse(JSON.stringify(cartJajan)), totalParfum: totalParfum, totalJajan: totalJajan, 
+            total: hargaCuci + totalParfum + totalJajan 
+        }; 
+        document.getElementById('namaKendaraan').value = ''; 
+        document.getElementById('hargaCuci').value = '0'; 
+        document.getElementById('keteranganLainnya').value = ''; 
+        document.getElementById('jamTransaksi').value = ''; 
+        var allCekKaryawan = document.querySelectorAll('.cekKaryawan:checked');
+        for(var ck=0;ck<allCekKaryawan.length;ck++) allCekKaryawan[ck].checked=false;
+        var allCbParfum = document.querySelectorAll('.cbParfum');
+        for(var cp=0;cp<allCbParfum.length;cp++) allCbParfum[cp].checked=false;
+        var allCbJajan = document.querySelectorAll('.cbJajan');
+        for(var cj=0;cj<allCbJajan.length;cj++) allCbJajan[cj].checked=false;
+        cartParfum = []; 
+        cartJajan = []; 
+        renderCartParfum(); 
+        renderCartJajan(); 
+        showNota(transaksi, waktu); 
+    };
+
+    // Edit dari Riwayat
+    async function editTransaksiFromRiwayat(idx){ 
+        var d = getDataHari(); 
+        var t = d.transaksi[idx]; 
+        if(!t) return; 
+        currentEditIndex = idx; 
+        editParfumItems = JSON.parse(JSON.stringify(t.parfum || []));
+        editJajanItems = JSON.parse(JSON.stringify(t.jajan || []));
+        
+        var karyawanHtml = ''; 
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var checked = (t.karyawanIds && t.karyawanIds.indexOf(k.id)!==-1) ? 'checked' : ''; 
+            karyawanHtml += '<label style="display:block; margin-bottom:8px;"><input type="checkbox" class="editCekKaryawan2" value="' + k.id + '" ' + checked + '> ' + k.nama + '</label>'; 
+        }
+        
+        var parfumHtml = '<div id="editParfumContainer2">';
+        for(var p=0;p<editParfumItems.length;p++){
+            var item = editParfumItems[p];
+            parfumHtml += '<div class="edit-item-row">✨ ' + item.nama + ' - <input type="number" class="editParfumQty" data-id="'+item.id+'" value="'+item.qty+'" style="width:60px;" min="0"> <button type="button" class="btn-small" onclick="hapusEditParfum2(this)" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        parfumHtml += '</div><div class="form-group"><select id="tambahParfumSelect2" style="width:70%; display:inline-block; margin-right:5px;"><option value="">-- Pilih Parfum --</option>';
+        for(var mp=0;mp<masterParfum.length;mp++){
+            parfumHtml += '<option value="'+masterParfum[mp].id+'" data-nama="'+masterParfum[mp].nama+'" data-harga="'+masterParfum[mp].harga+'">'+masterParfum[mp].nama+' - '+formatRupiah(masterParfum[mp].harga)+'</option>';
+        }
+        parfumHtml += '</select><button type="button" class="btn-small" onclick="tambahEditParfum2()" style="width:25%; background:#27ae60;">+ Tambah</button></div>';
+        
+        var jajanHtml = '<div id="editJajanContainer2">';
+        for(var j=0;j<editJajanItems.length;j++){
+            var itemJ = editJajanItems[j];
+            jajanHtml += '<div class="edit-item-row">🍬 ' + itemJ.nama + ' - <input type="number" class="editJajanQty" data-id="'+itemJ.id+'" value="'+itemJ.qty+'" style="width:60px;" min="0"> <button type="button" class="btn-small" onclick="hapusEditJajan2(this)" style="background:#e74c3c;">Hapus</button></div>';
+        }
+        jajanHtml += '</div><div class="form-group"><select id="tambahJajanSelect2" style="width:70%; display:inline-block; margin-right:5px;"><option value="">-- Pilih Jajan --</option>';
+        for(var mj=0;mj<masterJajan.length;mj++){
+            jajanHtml += '<option value="'+masterJajan[mj].id+'" data-nama="'+masterJajan[mj].nama+'" data-harga="'+masterJajan[mj].harga+'">'+masterJajan[mj].nama+' - '+formatRupiah(masterJajan[mj].harga)+'</option>';
+        }
+        jajanHtml += '</select><button type="button" class="btn-small" onclick="tambahEditJajan2()" style="width:25%; background:#27ae60;">+ Tambah</button></div>';
+        
+        document.getElementById('editFormContainer').innerHTML = `
+            <div class="form-group"><label>Jam</label><input type="text" id="editWaktu2" value="${t.waktu}"></div>
+            <div class="form-group"><label>Jenis Kendaraan</label><select id="editJenisKendaraan2"><option ${t.jenisKendaraan==='Mobil'?'selected':''}>Mobil</option><option ${t.jenisKendaraan==='Motor'?'selected':''}>Motor</option><option ${t.jenisKendaraan==='Tidak Ada'?'selected':''}>Tidak Ada</option></select></div>
+            <div class="form-group"><label>Nama Kendaraan</label><input type="text" id="editNamaKendaraan2" value="${t.namaKendaraan!=='-'?t.namaKendaraan:''}"></div>
+            <div class="form-group"><label>Metode Bayar</label><select id="editMetodeBayar2"><option ${t.metodeBayar==='Cash'?'selected':''}>Cash</option><option ${t.metodeBayar==='Qris'?'selected':''}>Qris</option><option ${t.metodeBayar==='Lainnya'?'selected':''}>Lainnya</option></select></div>
+            <div class="form-group"><label>Keterangan Lainnya</label><input type="text" id="editKeteranganLainnya2" value="${t.keteranganLainnya||''}"></div>
+            <div class="form-group"><label>Harga Cuci</label><input type="number" id="editHargaCuci2" value="${t.hargaCuci}"></div>
+            <div class="form-group"><label>Karyawan</label><div id="editKaryawanList2">${karyawanHtml}</div></div>
+            <div class="form-group"><label>✨ Parfum</label>${parfumHtml}</div>
+            <div class="form-group"><label>🍬 Jajan</label>${jajanHtml}</div>`; 
+        document.getElementById('modalEdit').style.display = 'flex'; 
+    }
+    
+    window.tambahEditParfum2 = function() {
+        var select = document.getElementById('tambahParfumSelect2');
+        var id = select.value;
+        if(!id) return;
+        var option = select.options[select.selectedIndex];
+        var nama = option.dataset.nama;
+        var harga = parseInt(option.dataset.harga);
+        var container = document.getElementById('editParfumContainer2');
+        var newDiv = document.createElement('div');
+        newDiv.className = 'edit-item-row';
+        newDiv.innerHTML = '✨ ' + nama + ' - <input type="number" class="editParfumQty" data-id="'+id+'" value="1" style="width:60px;" min="0"> <button type="button" class="btn-small" onclick="hapusEditParfum2(this)" style="background:#e74c3c;">Hapus</button>';
+        container.appendChild(newDiv);
+        select.value = '';
+    };
+    
+    window.hapusEditParfum2 = function(btn) {
+        btn.parentElement.remove();
+    };
+    
+    window.tambahEditJajan2 = function() {
+        var select = document.getElementById('tambahJajanSelect2');
+        var id = select.value;
+        if(!id) return;
+        var option = select.options[select.selectedIndex];
+        var nama = option.dataset.nama;
+        var harga = parseInt(option.dataset.harga);
+        var container = document.getElementById('editJajanContainer2');
+        var newDiv = document.createElement('div');
+        newDiv.className = 'edit-item-row';
+        newDiv.innerHTML = '🍬 ' + nama + ' - <input type="number" class="editJajanQty" data-id="'+id+'" value="1" style="width:60px;" min="0"> <button type="button" class="btn-small" onclick="hapusEditJajan2(this)" style="background:#e74c3c;">Hapus</button>';
+        container.appendChild(newDiv);
+        select.value = '';
+    };
+    
+    window.hapusEditJajan2 = function(btn) {
+        btn.parentElement.remove();
+    };
+    
+    window.cetakNotaTransaksi = function(idx){ 
+        var d = getDataHari(); 
+        var t = d.transaksi[idx]; 
+        if(t) showNota(t, t.waktu); 
+    };
+    
+    window.hapusTransaksi = async function(idx){ 
+        if(confirm('Hapus transaksi ini?')){ 
+            var d = getDataHari(); 
+            var t = d.transaksi[idx]; 
+            if(t.parfum) for(var p=0;p<t.parfum.length;p++){ 
+                for(var mp=0;mp<masterParfum.length;mp++) if(masterParfum[mp].id===t.parfum[p].id) masterParfum[mp].stok += t.parfum[p].qty;
+            } 
+            if(t.jajan) for(var j=0;j<t.jajan.length;j++){ 
+                for(var mj=0;mj<masterJajan.length;mj++) if(masterJajan[mj].id===t.jajan[j].id) masterJajan[mj].stok += t.jajan[j].qty;
+            } 
+            d.transaksi.splice(idx,1); 
+            await saveAll(); 
+            refreshAll(); 
+            alert('Transaksi dihapus'); 
+        } 
+    };
+    
+    function renderRiwayat(){ 
+        var d = getDataHari(); 
+        var tr = d.transaksi || []; 
+        if(tr.length === 0){ 
+            document.getElementById('tabelRiwayat').innerHTML = '<p style="text-align:center;padding:20px">Belum ada transaksi</p>'; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Jam</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Kendaraan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Metode</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Cuci</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Parfum</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Jajan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Total</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        html += '</tr></thead><tbody>';
+        for(var i=0;i<tr.length;i++){ 
+            var t = tr[i]; 
+            var metodeDisplay = t.metodeBayar; 
+            if(t.metodeBayar === 'Lainnya' && t.keteranganLainnya) metodeDisplay = 'Lainnya: ' + t.keteranganLainnya; 
+            var kendaraanDisplay = t.jenisKendaraan + (t.namaKendaraan && t.namaKendaraan!=='-' ? ' - ' + t.namaKendaraan : ''); 
+            var rowClass = (t.metodeBayar === 'Qris') ? 'row-qris' : (t.metodeBayar === 'Lainnya') ? 'row-lainnya' : '';
+            html += '<tr class="' + rowClass + '">';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + (t.waktu || '-') + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + kendaraanDisplay + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + metodeDisplay + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(t.hargaCuci) + '</td>';
+            var parfumText = '-';
+            if(t.parfum && t.parfum.length>0){
+                parfumText = '';
+                for(var pt=0;pt<t.parfum.length;pt++) parfumText += t.parfum[pt].nama+'x'+t.parfum[pt].qty+',';
+                parfumText = parfumText.slice(0,-1);
+            }
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(t.totalParfum||0) + '<br><small>' + parfumText + '</small></td>';
+            var jajanText = '-';
+            if(t.jajan && t.jajan.length>0){
+                jajanText = '';
+                for(var jt=0;jt<t.jajan.length;jt++) jajanText += t.jajan[jt].nama+'x'+t.jajan[jt].qty+',';
+                jajanText = jajanText.slice(0,-1);
+            }
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(t.totalJajan||0) + '<br><small>' + jajanText + '</small></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;"><strong>' + formatRupiah(t.total) + '</strong></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;" class="aksi-buttons"><button class="btn-edit" onclick="editTransaksiFromRiwayat(' + i + ')">✏️ Edit</button> <button class="btn-print" onclick="cetakNotaTransaksi(' + i + ')">🖨️ Cetak</button> <button class="btn-delete" onclick="hapusTransaksi(' + i + ')">🗑️ Hapus</button></td>';
+            html += '</tr>';
+        } 
+        html += '</tbody></table>'; 
+        document.getElementById('tabelRiwayat').innerHTML = html; 
+    }
+
+    // Pengeluaran
+    function renderPengeluaran(){ 
+        var d = getDataHari(); 
+        var pengeluaran = d.pengeluaran || []; 
+        if(pengeluaran.length === 0){ 
+            document.getElementById('daftarPengeluaran').innerHTML = '<p style="text-align:center;padding:20px">Tidak ada pengeluaran</p>'; 
+            document.getElementById('totalPengeluaranDisplay').innerHTML = ''; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Jam</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Keterangan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Jumlah</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        html += '</tr></thead><tbody>';
+        var total = 0; 
+        for(var i=0;i<pengeluaran.length;i++){ 
+            var p = pengeluaran[i]; 
+            total += p.jumlah; 
+            html += '<tr>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + (p.waktu || '-') + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">' + (p.keterangan || '-') + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(p.jumlah) + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><button class="btn-delete" onclick="hapusPengeluaran(' + i + ')">Hapus</button></td>';
+            html += '</tr>';
+        } 
+        html += '<tr style="background:#e0e0e0;font-weight:bold;">';
+        html += '<td colspan="2" style="padding:8px; border:1px solid #ddd;">TOTAL</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(total) + '</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd;">-</td>';
+        html += '</tr>';
+        html += '</tbody></table>'; 
+        document.getElementById('daftarPengeluaran').innerHTML = html; 
+        document.getElementById('totalPengeluaranDisplay').innerHTML = '💰 Total Pengeluaran: ' + formatRupiah(total); 
+    }
+    
+    window.hapusPengeluaran = async function(idx){ 
+        var d = getDataHari(); 
+        d.pengeluaran.splice(idx,1); 
+        await saveAll(); 
+        renderPengeluaran(); 
+        refreshLaporan(); 
+    };
+    
+    document.getElementById('btnTambahPengeluaran').onclick = async function(){ 
+        var waktu = document.getElementById('waktuPengeluaran').value.trim() || getCurrentTime(); 
+        var keterangan = document.getElementById('ketPengeluaran').value.trim(); 
+        var jumlah = parseInt(document.getElementById('jumlahPengeluaran').value); 
+        if(!keterangan){ alert('Keterangan wajib'); return; } 
+        if(isNaN(jumlah) || jumlah <= 0){ alert('Jumlah valid'); return; } 
+        var d = getDataHari(); 
+        if(!d.pengeluaran) d.pengeluaran = []; 
+        d.pengeluaran.push({waktu: waktu, keterangan: keterangan, jumlah: jumlah}); 
+        await saveAll(); 
+        document.getElementById('waktuPengeluaran').value = ''; 
+        document.getElementById('ketPengeluaran').value = ''; 
+        document.getElementById('jumlahPengeluaran').value = ''; 
+        renderPengeluaran(); 
+        refreshLaporan(); 
+        showSaveStatus('Pengeluaran ditambahkan'); 
+    };
+
+    // Grafik
+    var charts = {};
+    function renderGrafik(){ 
+        var now = new Date(currentDate); 
+        var tahun = now.getFullYear(); 
+        var bulan = now.getMonth(); 
+        var hariAkhir = new Date(tahun, bulan+1, 0).getDate(); 
+        var labels = []; 
+        for(var i=1;i<=hariAkhir;i++) labels.push(i); 
+        var dataJajan = new Array(hariAkhir).fill(0); 
+        var dataParfum = new Array(hariAkhir).fill(0); 
+        var dataJumlahMobil = new Array(hariAkhir).fill(0); 
+        var dataJumlahMotor = new Array(hariAkhir).fill(0); 
+        var dataPendapatanMobil = new Array(hariAkhir).fill(0); 
+        var dataPendapatanMotor = new Array(hariAkhir).fill(0); 
+        for(var tgl in allData){ 
+            var date = new Date(tgl); 
+            if(date.getFullYear() === tahun && date.getMonth() === bulan){ 
+                var day = date.getDate() - 1; 
+                var transaksi = allData[tgl].transaksi || []; 
+                for(var tx=0;tx<transaksi.length;tx++){ 
+                    var t=transaksi[tx];
+                    dataJajan[day] += t.totalJajan || 0; 
+                    dataParfum[day] += t.totalParfum || 0; 
+                    if(t.jenisKendaraan === 'Mobil'){ 
+                        dataJumlahMobil[day]++; 
+                        dataPendapatanMobil[day] += t.hargaCuci || 0; 
+                    } else if(t.jenisKendaraan === 'Motor'){ 
+                        dataJumlahMotor[day]++; 
+                        dataPendapatanMotor[day] += t.hargaCuci || 0; 
+                    } 
+                } 
+            } 
+        } 
+        for(var k in charts) if(charts[k]) charts[k].destroy(); 
+        charts.jajan = new Chart(document.getElementById('grafikJajan'), {type:'line', data:{labels:labels, datasets:[{label:'Penjualan Jajan (Rp)', data:dataJajan, borderColor:'#e67e22', fill:true}]}}); 
+        charts.parfum = new Chart(document.getElementById('grafikParfum'), {type:'line', data:{labels:labels, datasets:[{label:'Penjualan Parfum (Rp)', data:dataParfum, borderColor:'#9b59b6', fill:true}]}}); 
+        charts.jumlah = new Chart(document.getElementById('grafikJumlahKendaraan'), {type:'bar', data:{labels:labels, datasets:[{label:'Mobil (unit)', data:dataJumlahMobil, backgroundColor:'#3498db'},{label:'Motor (unit)', data:dataJumlahMotor, backgroundColor:'#e74c3c'}]}}); 
+        charts.pendapatan = new Chart(document.getElementById('grafikPendapatanKendaraan'), {type:'line', data:{labels:labels, datasets:[{label:'Pendapatan Mobil', data:dataPendapatanMobil, borderColor:'#3498db'},{label:'Pendapatan Motor', data:dataPendapatanMotor, borderColor:'#e74c3c'}]}}); 
+    }
+
+    // Gaji Karyawan
+    function renderDaftarKaryawan(){ 
+        if(masterKaryawan.length === 0){ 
+            document.getElementById('daftarKaryawan').innerHTML = '<p style="text-align:center;padding:20px">Belum ada karyawan</p>'; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Nama</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Status</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        html += '</thead><tbody>';
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var status = getStatusKaryawan(k.id, currentDate); 
+            var badgeClass = (status === 'Staf') ? 'staf-badge' : 'training-badge';
+            html += '<tr>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><strong>' + k.nama + '</strong></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><span class="' + badgeClass + '">' + status + '</span></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;" class="aksi-buttons"><button class="btn-delete" onclick="hapusKaryawan(\'' + k.id + '\')">🗑️ Hapus</button>';
+            if(status === 'Training') html += ' <button class="btn-small" style="background:#f39c12;" onclick="naikkanJabatan(\'' + k.id + '\')">⭐ Naik Staf</button>';
+            html += '</td></tr>'; 
+        } 
+        html += '</tbody></tr>'; 
+        document.getElementById('daftarKaryawan').innerHTML = html; 
+        renderCeklisKaryawan(); 
+    }
+    
+    window.hapusKaryawan = async function(id){ 
+        if(confirm('Hapus karyawan?')){ 
+            var newKaryawan = [];
+            for(var i=0;i<masterKaryawan.length;i++) if(masterKaryawan[i].id !== id) newKaryawan.push(masterKaryawan[i]);
+            masterKaryawan = newKaryawan;
+            var newHistory = [];
+            for(var j=0;j<karyawanStatusHistory.length;j++) if(karyawanStatusHistory[j].karyawanId !== id) newHistory.push(karyawanStatusHistory[j]);
+            karyawanStatusHistory = newHistory;
+            for(var tgl in allData) if(allData[tgl].transaksi) for(var tx=0;tx<allData[tgl].transaksi.length;tx++) if(allData[tgl].transaksi[tx].karyawanIds){
+                var newIds = [];
+                for(var ki=0;ki<allData[tgl].transaksi[tx].karyawanIds.length;ki++) if(allData[tgl].transaksi[tx].karyawanIds[ki] !== id) newIds.push(allData[tgl].transaksi[tx].karyawanIds[ki]);
+                allData[tgl].transaksi[tx].karyawanIds = newIds;
+            }
+            await saveAll(); 
+            refreshAll(); 
+        } 
+    };
+    
+    window.naikkanJabatan = async function(id){ 
+        if(confirm('Naikkan jadi Staf?')){ 
+            karyawanStatusHistory.push({karyawanId: id, tanggalMulai: currentDate, status: 'Staf'}); 
+            await saveAll(); 
+            refreshAll(); 
+        } 
+    };
+    
+    function renderCeklisKaryawan(){ 
+        var container = document.getElementById('karyawanList'); 
+        if(masterKaryawan.length === 0){ 
+            container.innerHTML = '<i>Belum ada karyawan. Tambahkan di menu Gaji.</i>'; 
+            return; 
+        } 
+        var html = ''; 
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var status = getStatusKaryawan(k.id, currentDate); 
+            html += '<label><input type="checkbox" class="cekKaryawan" value="' + k.id + '"> ' + k.nama + ' (' + status + ')</label>'; 
+        } 
+        container.innerHTML = html; 
+    }
+    
+    function renderGajiHarian(){ 
+        if(masterKaryawan.length === 0){ 
+            document.getElementById('gajiHarian').innerHTML = '<p style="text-align:center;padding:20px">Belum ada karyawan</p>'; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Karyawan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Status</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Gaji Hari Ini</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Detail Kendaraan & Harga</th>';
+        html += '</thead><tbody>';
+        var grandTotal = 0;
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var totalGaji = 0;
+            var details = getDetailGajiHarian(k.id, currentDate);
+            for(var d=0;d<details.length;d++) totalGaji += details[d].gaji;
+            grandTotal += totalGaji;
+            var status = getStatusKaryawan(k.id, currentDate);
+            var badgeClass = (status === 'Staf') ? 'staf-badge' : 'training-badge';
+            html += '<tr>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><strong>' + k.nama + '</strong></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><span class="' + badgeClass + '">' + status + '</span></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;"><strong>' + formatRupiah(totalGaji) + '</strong></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;">';
+            if(details.length === 0){
+                html += '-';
+            } else {
+                for(var dt=0;dt<details.length;dt++){
+                    html += '<div class="detail-item">🕐 ' + details[dt].waktu + ' - 🚗 ' + details[dt].kendaraan + ' (Cuci: ' + formatRupiah(details[dt].hargaCuci) + ') → Gaji: ' + formatRupiah(details[dt].gaji) + '</div>';
+                }
+            }
+            html += '</td></tr>';
+        }
+        html += '<tr style="background:#e0e0e0;font-weight:bold;">';
+        html += '<td colspan="2" style="padding:8px; border:1px solid #ddd;">TOTAL</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(grandTotal) + '</td>';
+        html += '<td style="padding:8px; border:1px solid #ddd;">-</td>';
+        html += '</tr>';
+        html += '</tbody><tr>';
+        document.getElementById('gajiHarian').innerHTML = html;
+    }
+    
+    function renderGajiBulanan(){ 
+        if(masterKaryawan.length === 0){ 
+            document.getElementById('gajiBulanan').innerHTML = '<p style="text-align:center;padding:20px">Tidak ada karyawan</p>'; 
+            return; 
+        } 
+        var now = new Date(currentDate); 
+        var tahun = now.getFullYear(); 
+        var bulan = now.getMonth(); 
+        var dates = []; 
+        var cur = new Date(tahun, bulan, 1); 
+        while(cur.getMonth() === bulan){ 
+            dates.push(formatLocalDate(cur)); 
+            cur.setDate(cur.getDate() + 1); 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse; font-size:11px;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:6px; border:1px solid #ddd;">Karyawan</th>';
+        for(var d=0;d<dates.length;d++) html += '<th style="padding:6px; border:1px solid #ddd; text-align:center;">' + dates[d].split('-')[2] + '</th>';
+        html += '<th style="padding:6px; border:1px solid #ddd; text-align:right;">Total</th>';
+        html += '</thead><tbody>';
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            html += '<tr>';
+            html += '<td style="padding:6px; border:1px solid #ddd;"><strong>' + k.nama + '</strong></tr>';
+            var totalBulan = 0; 
+            for(var dd=0;dd<dates.length;dd++){ 
+                var gaji = getGajiHarian(k.id, dates[dd]); 
+                totalBulan += gaji; 
+                html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(gaji) + '</td>'; 
+            } 
+            html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;"><strong>' + formatRupiah(totalBulan) + '</strong></td>';
+            html += '</tr>'; 
+        } 
+        html += '</tbody></table>'; 
+        document.getElementById('gajiBulanan').innerHTML = html; 
+    }
+    
+    function getMingguIni(tgl){ 
+        var d = new Date(tgl); 
+        var day = d.getDay(); 
+        var mulai = new Date(d); 
+        mulai.setDate(d.getDate() - day); 
+        var selesai = new Date(mulai); 
+        selesai.setDate(mulai.getDate() + 6); 
+        return {mulai: formatLocalDate(mulai), selesai: formatLocalDate(selesai)}; 
+    }
+    
+    function getTotalKasbonPeriode(id, mulai, selesai){ 
+        var total = 0; 
+        var cur = new Date(mulai); 
+        while(cur <= new Date(selesai)){ 
+            var tgl = formatLocalDate(cur); 
+            var dataHari = allData[tgl]; 
+            if(dataHari && dataHari.kasbon) for(var i=0;i<dataHari.kasbon.length;i++) if(dataHari.kasbon[i].idKaryawan === id) total += dataHari.kasbon[i].jumlah; 
+            cur.setDate(cur.getDate() + 1); 
+        } 
+        return total; 
+    }
+    
+    function renderGajiMingguan(){ 
+        var {mulai, selesai} = getMingguIni(currentDate); 
+        var days = ['Ming','Sen','Sel','Rab','Kam','Jum','Sab']; 
+        var dates = []; 
+        var cur = new Date(mulai); 
+        for(var i=0;i<7;i++){ 
+            dates.push(formatLocalDate(cur)); 
+            cur.setDate(cur.getDate() + 1); 
+        } 
+        if(masterKaryawan.length === 0){ 
+            document.getElementById('gajiMingguan').innerHTML = '<p style="text-align:center;padding:20px">Belum ada karyawan</p>'; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse; font-size:11px;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:6px; border:1px solid #ddd;">Karyawan</th>';
+        for(var i=0;i<7;i++) html += '<th style="padding:6px; border:1px solid #ddd; text-align:center;">' + days[i] + '<br><small>' + dates[i].split('-')[2] + '</small></th>';
+        html += '<th style="padding:6px; border:1px solid #ddd; text-align:right;">Total Gaji</th>';
+        html += '<th style="padding:6px; border:1px solid #ddd; text-align:right;">Kasbon</th>';
+        html += '<th style="padding:6px; border:1px solid #ddd; text-align:right;">Dibayar</th>';
+        html += '</thead><tbody>';
+        var grandGaji = 0, grandKasbon = 0; 
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var totalGaji = 0; 
+            html += '<tr>';
+            html += '<td style="padding:6px; border:1px solid #ddd;"><strong>' + k.nama + '</strong></td>';
+            for(var d=0;d<dates.length;d++){ 
+                var gaji = getGajiHarian(k.id, dates[d]); 
+                totalGaji += gaji; 
+                html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(gaji) + '</td>'; 
+            } 
+            var kasbon = getTotalKasbonPeriode(k.id, mulai, selesai); 
+            grandGaji += totalGaji; 
+            grandKasbon += kasbon; 
+            html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;"><strong>' + formatRupiah(totalGaji) + '</strong></td>';
+            html += '<td style="padding:6px; border:1px solid #ddd; text-align:right; color:#e74c3c;">' + formatRupiah(kasbon) + '</td>';
+            html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;"><strong>' + formatRupiah(totalGaji - kasbon) + '</strong></td>';
+            html += '</tr>'; 
+        } 
+        html += '<tr style="background:#e0e0e0;font-weight:bold;">';
+        html += '<td style="padding:6px; border:1px solid #ddd;">TOTAL</td>';
+        for(var d=0;d<dates.length;d++){ 
+            var totalHari = 0; 
+            for(var ik=0;ik<masterKaryawan.length;ik++) totalHari += getGajiHarian(masterKaryawan[ik].id, dates[d]); 
+            html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(totalHari) + '</td>';
+        } 
+        html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(grandGaji) + '</td>';
+        html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(grandKasbon) + '</td>';
+        html += '<td style="padding:6px; border:1px solid #ddd; text-align:right;">' + formatRupiah(grandGaji - grandKasbon) + '</td>';
+        html += '</tr>';
+        html += '</tbody></table>'; 
+        document.getElementById('gajiMingguan').innerHTML = html; 
+    }
+    
+    function renderKasbon(){ 
+        var d = getDataHari(); 
+        var kasbonMap = {}; 
+        if(d.kasbon) for(var i=0;i<d.kasbon.length;i++) kasbonMap[d.kasbon[i].idKaryawan] = (kasbonMap[d.kasbon[i].idKaryawan] || 0) + d.kasbon[i].jumlah; 
+        if(masterKaryawan.length === 0){ 
+            document.getElementById('kasbonList').innerHTML = '<p style="text-align:center;padding:20px">Tidak ada karyawan</p>'; 
+            return; 
+        } 
+        var html = '<table style="width:100%; border-collapse:collapse;">';
+        html += '<thead><tr style="background:#2c3e50;color:white;">';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Karyawan</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Kasbon Hari Ini</th>';
+        html += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        html += '</thead><tbody>';
+        for(var i=0;i<masterKaryawan.length;i++){ 
+            var k=masterKaryawan[i];
+            var kasbon = kasbonMap[k.id] || 0; 
+            html += '<tr>';
+            html += '<td style="padding:8px; border:1px solid #ddd;"><strong>' + k.nama + '</strong></td>';
+            html += '<td style="padding:8px; border:1px solid #ddd; text-align:right; color:#e74c3c;">' + formatRupiah(kasbon) + '</td>';
+            html += '<td style="padding:8px; border:1px solid #ddd;" class="aksi-buttons"><button class="btn-small" onclick="tambahKasbon(\'' + k.id + '\',\'' + k.nama + '\')">➕ Tambah</button> <button class="btn-small" onclick="editKasbon(\'' + k.id + '\',\'' + k.nama + '\',' + kasbon + ')">✏️ Edit</button></td>';
+            html += '</tr>'; 
+        } 
+        html += '</tbody><table>'; 
+        document.getElementById('kasbonList').innerHTML = html; 
+    }
+    
+    window.tambahKasbon = async function(id, nama){ 
+        var jml = prompt('Kasbon untuk ' + nama + ':', '0'); 
+        if(jml && !isNaN(parseInt(jml))){ 
+            var d = getDataHari(); 
+            if(!d.kasbon) d.kasbon = []; 
+            d.kasbon.push({idKaryawan: id, jumlah: parseInt(jml), tanggal: currentDate}); 
+            await saveAll(); 
+            refreshAll(); 
+        } 
+    };
+    
+    window.editKasbon = async function(id, nama, curr){ 
+        var baru = prompt('Edit kasbon ' + nama + ':', curr); 
+        if(baru !== null && !isNaN(parseInt(baru))){ 
+            var d = getDataHari(); 
+            var newKasbon = [];
+            for(var i=0;i<d.kasbon.length;i++) if(d.kasbon[i].idKaryawan !== id) newKasbon.push(d.kasbon[i]);
+            d.kasbon = newKasbon;
+            if(parseInt(baru) !== 0) d.kasbon.push({idKaryawan: id, jumlah: parseInt(baru), tanggal: currentDate}); 
+            await saveAll(); 
+            refreshAll(); 
+        } 
+    };
+    
+    document.getElementById('btnTambahKaryawan').onclick = async function(){ 
+        var nama = prompt('Nama karyawan:'); 
+        if(nama){ 
+            var status = confirm('Klik OK = STAF, Cancel = TRAINING') ? 'Staf' : 'Training'; 
+            var id = Date.now() + '' + Math.random(); 
+            masterKaryawan.push({id: id, nama: nama}); 
+            karyawanStatusHistory.push({karyawanId: id, tanggalMulai: currentDate, status: status}); 
+            await saveAll(); 
+            refreshAll(); 
+        } 
+    };
+    
+    document.getElementById('btnTambahKasbon').onclick = function(){ 
+        if(masterKaryawan.length === 0){ 
+            alert('Tambah karyawan dulu'); 
+            return; 
+        } 
+        var list = '';
+        for(var i=0;i<masterKaryawan.length;i++) list += (i+1) + '. ' + masterKaryawan[i].nama + '\n';
+        var pilih = prompt('Pilih karyawan:\n' + list, '1'); 
+        var idx = parseInt(pilih) - 1; 
+        if(idx >= 0 && idx < masterKaryawan.length) tambahKasbon(masterKaryawan[idx].id, masterKaryawan[idx].nama); 
+    };
+    
+    // Master Stok
+    function renderMasterStok(){ 
+        var htmlJ = '<table style="width:100%; border-collapse:collapse;">';
+        htmlJ += '<thead><tr style="background:#2c3e50;color:white;">';
+        htmlJ += '<th style="padding:8px; border:1px solid #ddd;">Nama</th>';
+        htmlJ += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Harga</th>';
+        htmlJ += '<th style="padding:8px; border:1px solid #ddd; text-align:center;">Stok</th>';
+        htmlJ += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Total Nilai</th>';
+        htmlJ += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        htmlJ += '</tr></thead><tbody>';
+        for(var i=0;i<masterJajan.length;i++){ 
+            var it = masterJajan[i]; 
+            htmlJ += '<tr>';
+            htmlJ += '<td style="padding:8px; border:1px solid #ddd;"><strong>' + it.nama + '</strong></td>';
+            htmlJ += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(it.harga) + '</td>';
+            htmlJ += '<td style="padding:8px; border:1px solid #ddd; text-align:center;">' + it.stok + '</td>';
+            htmlJ += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(it.harga * it.stok) + '</td>';
+            htmlJ += '<td style="padding:8px; border:1px solid #ddd;" class="aksi-buttons"><button class="btn-edit" onclick="editMaster(\'jajan\',' + i + ')">✏️ Edit</button> <button class="btn-delete" onclick="hapusMaster(\'jajan\',' + i + ')">🗑️ Hapus</button></td>';
+            htmlJ += '</tr>'; 
+        } 
+        htmlJ += '</tbody></table>';
+        htmlJ += '<button class="btn-add" onclick="tambahMaster(\'jajan\')" style="margin-top:10px">+ Tambah Jajan</button>';
+        document.getElementById('masterJajan').innerHTML = htmlJ; 
+        
+        var htmlP = '<table style="width:100%; border-collapse:collapse;">';
+        htmlP += '<thead><tr style="background:#2c3e50;color:white;">';
+        htmlP += '<th style="padding:8px; border:1px solid #ddd;">Nama</th>';
+        htmlP += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Harga</th>';
+        htmlP += '<th style="padding:8px; border:1px solid #ddd; text-align:center;">Stok</th>';
+        htmlP += '<th style="padding:8px; border:1px solid #ddd; text-align:right;">Total Nilai</th>';
+        htmlP += '<th style="padding:8px; border:1px solid #ddd;">Aksi</th>';
+        htmlP += '</tr></thead><tbody>';
+        for(var i=0;i<masterParfum.length;i++){ 
+            var it = masterParfum[i]; 
+            htmlP += '<tr>';
+            htmlP += '<td style="padding:8px; border:1px solid #ddd;"><strong>' + it.nama + '</strong></td>';
+            htmlP += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(it.harga) + '</td>';
+            htmlP += '<td style="padding:8px; border:1px solid #ddd; text-align:center;">' + it.stok + '</td>';
+            htmlP += '<td style="padding:8px; border:1px solid #ddd; text-align:right;">' + formatRupiah(it.harga * it.stok) + '</td>';
+            htmlP += '<td style="padding:8px; border:1px solid #ddd;" class="aksi-buttons"><button class="btn-edit" onclick="editMaster(\'parfum\',' + i + ')">✏️ Edit</button> <button class="btn-delete" onclick="hapusMaster(\'parfum\',' + i + ')">🗑️ Hapus</button></td>';
+            htmlP += '</tr>'; 
+        } 
+        htmlP += '</tbody></table>';
+        htmlP += '<button class="btn-add" onclick="tambahMaster(\'parfum\')" style="margin-top:10px">+ Tambah Parfum</button>';
+        document.getElementById('masterParfum').innerHTML = htmlP; 
+    }
+    
+    window.tambahMaster = async function(type){ 
+        var nama = prompt('Nama barang:'); 
+        if(!nama) return; 
+        var harga = parseInt(prompt('Harga satuan:')); 
+        if(isNaN(harga)) return; 
+        var stok = parseInt(prompt('Stok awal:')); 
+        if(isNaN(stok)) stok = 0; 
+        var id = Date.now() + '' + Math.random(); 
+        var item = {id: id, nama: nama, harga: harga, stok: stok}; 
+        if(type === 'jajan') masterJajan.push(item); 
+        else masterParfum.push(item); 
+        await saveAll(); 
+        renderMasterStok(); 
+    };
+    
+    window.editMaster = async function(type, idx){ 
+        var item = (type === 'jajan') ? masterJajan[idx] : masterParfum[idx]; 
+        var nama = prompt('Nama baru:', item.nama); 
+        if(nama) item.nama = nama; 
+        var harga = parseInt(prompt('Harga baru:', item.harga)); 
+        if(!isNaN(harga)) item.harga = harga; 
+        var stok = parseInt(prompt('Stok baru:', item.stok)); 
+        if(!isNaN(stok)) item.stok = stok; 
+        await saveAll(); 
+        renderMasterStok(); 
+    };
+    
+    window.hapusMaster = async function(type, idx){ 
+        if(confirm('Hapus item ini?')){ 
+            if(type === 'jajan') masterJajan.splice(idx,1); 
+            else masterParfum.splice(idx,1); 
+            await saveAll(); 
+            renderMasterStok(); 
+        } 
+    };
+
+    // Setting Nota
+    function loadSettingNota(){ 
+        var saved = localStorage.getItem('settingNota'); 
+        if(saved) settingNota = JSON.parse(saved); 
+        document.getElementById('settingNamaUsaha').value = settingNota.namaUsaha; 
+        document.getElementById('settingAlamat').value = settingNota.alamat; 
+        document.getElementById('settingTelp').value = settingNota.telp; 
+    }
+    
+    function saveSettingNota(){ 
+        settingNota.namaUsaha = document.getElementById('settingNamaUsaha').value || '🧼 CUCIAN KITA'; 
+        settingNota.alamat = document.getElementById('settingAlamat').value || 'Jl. Contoh No. 123, Kota'; 
+        settingNota.telp = document.getElementById('settingTelp').value || 'Telp: 0812-3456-7890'; 
+        localStorage.setItem('settingNota', JSON.stringify(settingNota)); 
+        showSaveStatus('Pengaturan disimpan'); 
+        document.getElementById('modalSetting').style.display = 'none'; 
+    }
+    
+    // Event Listeners
+    var radioMetode = document.querySelectorAll('input[name="metodeBayar"]');
+    for(var rm=0;rm<radioMetode.length;rm++){ 
+        radioMetode[rm].onclick = function(){ 
+            var group = document.getElementById('keteranganLainnyaGroup');
+            if(this.value === 'Lainnya') group.classList.remove('hidden');
+            else group.classList.add('hidden');
+        }; 
+    }
+    
+    document.getElementById('menuIcon').onclick = function(){ document.getElementById('sideMenu').style.left = '0'; };
+    document.getElementById('closeMenu').onclick = function(){ document.getElementById('sideMenu').style.left = '-260px'; };
+    
+    var menuLinks = document.querySelectorAll('.side-menu a');
+    for(var ml=0;ml<menuLinks.length;ml++){ 
+        menuLinks[ml].onclick = function(e){ 
+            e.preventDefault(); 
+            var pageId = this.getAttribute('data-page'); 
+            var title = this.getAttribute('data-title'); 
+            var allPages = document.querySelectorAll('.page');
+            for(var ap=0;ap<allPages.length;ap++) allPages[ap].classList.remove('active-page'); 
+            document.getElementById(pageId).classList.add('active-page'); 
+            document.getElementById('pageTitle').innerText = title; 
+            document.getElementById('sideMenu').style.left = '-260px'; 
+            if(pageId === 'page4') renderMasterStok(); 
+            if(pageId === 'page2'){ 
+                renderGrafik(); 
+                renderPengeluaran(); 
+                refreshLaporan(); 
+            } 
+            if(pageId === 'page3'){ 
+                renderGajiBulanan(); 
+                renderGajiMingguan(); 
+                renderGajiHarian();
+            } 
+        }; 
+    }
+    
+    document.getElementById('menuSetting').onclick = function(e){ 
+        e.preventDefault(); 
+        document.getElementById('modalSetting').style.display = 'flex'; 
+    };
+    document.getElementById('closeSettingModal').onclick = function(){ document.getElementById('modalSetting').style.display = 'none'; };
+    document.getElementById('btnSimpanSetting').onclick = saveSettingNota;
+    document.getElementById('tanggalGlobal').value = currentDate;
+    document.getElementById('tanggalGlobal').onchange = function(e){ currentDate = e.target.value; refreshAll(); };
+    document.getElementById('closeEditModal').onclick = function(){ document.getElementById('modalEdit').style.display = 'none'; };
+    
+    window.onclick = function(e){ 
+        if(e.target === document.getElementById('modalEdit')) document.getElementById('modalEdit').style.display = 'none'; 
+        if(e.target === document.getElementById('modalSetting')) document.getElementById('modalSetting').style.display = 'none'; 
+        if(e.target === document.getElementById('modalNota')) document.getElementById('modalNota').style.display = 'none'; 
+    };
+    
+    // Refresh All
+    async function refreshAll(){ 
+        renderRiwayat(); 
+        renderDaftarKaryawan(); 
+        renderGajiHarian(); 
+        renderKasbon(); 
+        refreshLaporan(); 
+        renderGrafik(); 
+        renderMasterStok(); 
+        renderGajiBulanan(); 
+        renderGajiMingguan(); 
+        renderPengeluaran(); 
+        renderParfumList(); 
+        renderJajanList(); 
+        renderCartParfum(); 
+        renderCartJajan(); 
+        renderCeklisKaryawan(); 
+        attachParfumEvents();
+        attachJajanEvents();
+    }
+    
+    // Init
+    async function init(){ 
+        loadSettingNota(); 
+        loadPaperWidth(); 
+        await loadAll(); 
+        if(masterJajan.length === 0) masterJajan = [{id:'j1',nama:'Keripik',harga:5000,stok:20},{id:'j2',nama:'Minuman',harga:8000,stok:15}]; 
+        if(masterParfum.length === 0) masterParfum = [{id:'p1',nama:'Parfum A',harga:25000,stok:10},{id:'p2',nama:'Pengharum',harga:15000,stok:8}]; 
+        if(!allData[currentDate]) allData[currentDate] = {transaksi:[], pengeluaran:[], kasbon:[]}; 
+        refreshAll(); 
+        setInterval(async function(){ await saveAll(); }, 30000); 
+    }
+    init();
+</script>
+</body>
+</html>
